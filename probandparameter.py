@@ -78,6 +78,7 @@ scatter(sampleMeans[0], sampleMeans[1], color="green")
 
 
 # Question 1.5
+# Complete, 8 bins seems to be the best
 bins = 8
 x1s = []
 x2s = []
@@ -103,6 +104,7 @@ bar(xlocations2+0.2,histo2[0])
 
 
 #Question 1.7
+#Still need to try with more bins and larger dataset.
 from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
