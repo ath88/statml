@@ -113,14 +113,11 @@ figure()
 
 bar(xlocs, hist1[0])
 prange = np.arange(0, 10, 0.001)
-plt.plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
-show()
+plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
 
 #Question 1.7
 #Still need to try with more bins and larger dataset.
-from mpl_toolkits.mplot3d import Axes3D
-
-fig = plt.figure()
+fig = figure()
 ax = fig.add_subplot(111, projection='3d')
 hist, xedges, yedges = histogram2d(x1s, x2s, bins=8)
 
@@ -136,4 +133,4 @@ dz = hist.flatten()
 
 ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
-plt.show()
+show()
