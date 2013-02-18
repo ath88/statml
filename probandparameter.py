@@ -76,9 +76,50 @@ X, Y = np.meshgrid(X, Y)
 #show()
 
 
+# Question 1.5
+bins = 8
+x1s = []
+x2s = []
+for i in ySamples:
+  x1s.append(i[0])
+  x2s.append(i[1])
+
+figure()
+histo1 = histogram(x1s,bins)
+xlocations1 = array(range(len(histo1[0])))+0.1
+ax = gca()
+ax.xaxis.set_visible(False)
+title("x1 values")
+bar(xlocations1,histo1[0])
+
+figure()
+histo2 = histogram(x2s,bins)
+xlocations2 = array(range(len(histo2[0])))+0.1
+ax = gca()
+ax.xaxis.set_visible(False)
+title("x2 values")
+bar(xlocations2+0.2,histo2[0])
 
 
 
+#Question 1.7
+from mpl_toolkits.mplot3d import Axes3D
 
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+hist, xedges, yedges = histogram2d(x1s, x2s, bins=8)
 
+elements = (len(xedges) - 1) * (len(yedges) - 1)
+xpos, ypos = meshgrid(xedges[:-1]+0.1, yedges[:-1]+0.1)
+
+xpos = xpos.flatten()
+ypos = ypos.flatten()
+zpos = np.zeros(elements)
+dx = 0.34 * ones_like(zpos)
+dy = dx.copy()
+dz = hist.flatten()
+
+ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
+
+plt.show()
 
