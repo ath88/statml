@@ -2,7 +2,10 @@
 # -*- coding: UTF-8 -*-
 # Statistical Methods for Machine Learning
 # Case 1 source code
-# Authors: Asbjørn Thegler, Andreas Bock, Joachim Vig
+# Authors: Asbjørn Thegler, Andreas Bock
+#
+import math
+from scipy.stats import norm
 from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
@@ -14,7 +17,6 @@ import mpl_toolkits.mplot3d.axes3d as plot3d
 #	x_mu = np.array((x-mu))
 #	precision = np.matrix(sigma).I
 #	return const*np.exp(-0.5*x_mu*precision*x_mu.T)
-
 
 # Question 1.1
 ax = gca()
@@ -49,9 +51,6 @@ ySamples = []
 for i in Zrandoms:
 	z = i.T # transpose
 	ySamples.append((means + np.dot(L,z)))
-
-#print(ySamples[0:2])
-
 # Question 1.3
 # Estimation of sample μ and sample Σ:
 
@@ -76,6 +75,7 @@ scatter(x1s, x2s)
 scatter(means[0], means[1], color="red")
 scatter(sampleMeans[0], sampleMeans[1], color="green")
 
+diff_in_mean = abs(sampleMeans - means)
 
 # Question 1.5
 # Complete, 8 bins seems to be the best
@@ -83,8 +83,8 @@ bins = 8
 x1s = []
 x2s = []
 for i in ySamples:
-  x1s.append(i[0])
-  x2s.append(i[1])
+  x1s.append(i[:,0])
+  x2s.append(i[:,1])
 
 figure()
 histo1 = histogram(x1s,bins)
@@ -102,6 +102,19 @@ ax.xaxis.set_visible(False)
 title("x2 values")
 bar(xlocations2+0.2,histo2[0])
 
+# Question 1.6
+
+figure()
+pX1 = array([k for (k,v) in Zrandoms])
+hist1 = histogram(pX1, density=True)
+xlocs = array(range(len(hist1[0])))+0.1
+bar(xlocs, hist1[0])
+figure()
+
+bar(xlocs, hist1[0])
+prange = np.arange(0, 10, 0.001)
+plt.plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
+show()
 
 #Question 1.7
 #Still need to try with more bins and larger dataset.
