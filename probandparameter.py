@@ -51,8 +51,6 @@ for i in Zrandoms:
 	z = i.T # transpose
 	ySamples.append((means + np.dot(L,z)))
 
-#print(ySamples[0:2])
-
 # Question 1.3
 # Estimation of sample μ and sample Σ:
 
@@ -78,17 +76,25 @@ scatter(means[0], means[1], color="red")
 scatter(sampleMeans[0], sampleMeans[1], color="green")
 show()
 
+diff_in_mean = abs(sampleMeans - means)
+
 # Question 1.5
 
 # Question 1.6
 
-#figure()
+figure()
 pX1 = array([k for (k,v) in Zrandoms])
 hist1 = histogram(pX1, density=True)
 xlocs = array(range(len(hist1[0])))+0.1
-#bar(xlocs, hist1[0])
-#figure()
+bar(xlocs, hist1[0])
+figure()
+
 bar(xlocs, hist1[0])
 prange = np.arange(0, 10, 0.001)
-plt.plot(prange, norm.pdf(prange, 5, math.sqrt(0.3)))
+plt.plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
 show()
+
+
+
+
+
