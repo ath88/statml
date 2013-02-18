@@ -1,11 +1,13 @@
+#!/usr/bin/python3
 # Statistical Methods for Machine Learning
 # Case 1 source code
 # Authors: Asbjørn Thegler, Andreas Bock
 #
-
+import math
 import numpy as np
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.stats import norm
 
 # Question 1.1
 ax = gca()
@@ -13,15 +15,15 @@ ax.yaxis.set_visible(False)
 
 n = 50
 a = np.random.normal(-1,1,n)
-scatter(a, [0]*n)
+#scatter(a, [0]*n)
 #draw()
 
 a = np.random.normal(0,2,n)
-scatter(a, [1]*n)
+#scatter(a, [1]*n)
 #draw()
 
 a = np.random.normal(2,3,n)
-scatter(a, [2]*n)
+#scatter(a, [2]*n)
 #show()
 
 # Question 1.2
@@ -61,20 +63,15 @@ sampleVar = sampleVar/100
 print(sampleMeans) # looks good
 print(sampleVar) # check output compared to text's variance. Might be buggy, or maybe it's just supposed to deviate
 
-# Now draw the stuff
-fig = figure()
-ax = Axes3D(fig)
-X = np.arange(-4, 4, 0.25)
-Y = np.arange(-4, 4, 0.25)
-X, Y = np.meshgrid(X, Y)
-R = sam
-Z = np.sin(R)
+# Question 1.6
 
-ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='hot')
+#figure()
+pX1 = array([k for (k,v) in Zrandoms])
+hist1 = histogram(pX1, density=True)
+xlocs = array(range(len(hist1[0])))+0.1
+#bar(xlocs, hist1[0])
+#figure()
+bar(xlocs, hist1[0])
+prange = np.arange(0, 10, 0.001)
+plt.plot(prange, norm.pdf(prange, 5, math.sqrt(0.3)))
 show()
-
-
-
-
-
-
