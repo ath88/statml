@@ -51,7 +51,6 @@ ySamples = []
 for i in Zrandoms:
 	z = i.T # transpose
 	ySamples.append((means + np.dot(L,z)))
-
 # Question 1.3
 # Estimation of sample μ and sample Σ:
 
@@ -76,7 +75,6 @@ scatter(x1s, x2s)
 scatter(means[0], means[1], color="red")
 scatter(sampleMeans[0], sampleMeans[1], color="green")
 
-
 diff_in_mean = abs(sampleMeans - means)
 
 # Question 1.5
@@ -85,8 +83,8 @@ bins = 8
 x1s = []
 x2s = []
 for i in ySamples:
-  x1s.append(i[0])
-  x2s.append(i[1])
+  x1s.append(i[:,0])
+  x2s.append(i[:,1])
 
 figure()
 histo1 = histogram(x1s,bins)
