@@ -71,6 +71,7 @@ for i in ySamples:
 sampleVar = sampleVar/observations
 
 # Plot sample mean, mean and data points
+title('Maximum likelihood sample mean')
 scatter(x1s, x2s)
 scatter(means[0], means[1], color="red")
 scatter(sampleMeans[0], sampleMeans[1], color="green")
@@ -83,8 +84,8 @@ bins = 8
 x1s = []
 x2s = []
 for i in ySamples:
-  x1s.append(i[:,0])
-  x2s.append(i[:,1])
+  x1s.append(i[:,0][0,0])
+  x2s.append(i[:,1][0,0])
 
 figure()
 histo1 = histogram(x1s,bins)
@@ -105,18 +106,19 @@ bar(xlocations2+0.2,histo2[0])
 # Question 1.6
 
 figure()
+title('Histogram estimate of p(x1)')
 pX1 = array([k for (k,v) in Zrandoms])
 hist1 = histogram(pX1, density=True)
 xlocs = array(range(len(hist1[0])))+0.1
-bar(xlocs, hist1[0])
-figure()
+#bar(xlocs, hist1[0])
+#figure()
 
 bar(xlocs, hist1[0])
 prange = np.arange(0, 10, 0.001)
 plt.plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
 show()
 
-#Question 1.7
+# Question 1.7
 from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
@@ -136,3 +138,7 @@ dz = hist.flatten()
 ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
 plt.show()
+
+# Question 1.8
+
+#def ptransform
