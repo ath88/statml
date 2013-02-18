@@ -22,18 +22,23 @@ import mpl_toolkits.mplot3d.axes3d as plot3d
 ax = gca()
 ax.yaxis.set_visible(False)
 
-n = 50
-a = np.random.normal(-1,1,n)
-#scatter(a, [0]*n)
-#draw()
+x = linspace(-6,8,200)
 
-a = np.random.normal(0,2,n)
-#scatter(a, [1]*n)
-#draw()
+mean = -1
+variance = 1
+sigma = sqrt(variance)
+#plot(x,normpdf(x,mean,sigma))
 
-a = np.random.normal(2,3,n)
-#scatter(a, [2]*n)
-#show()
+mean = 0
+variance = 2
+sigma = sqrt(variance)
+#plot(x,normpdf(x,mean,sigma))
+
+mean = 2
+variance = 3
+sigma = sqrt(variance)
+#plot(x,normpdf(x,mean,sigma))
+title("3 Gaussian distribution functions with different mean and standard deviation")
 
 # Question 1.2
 
