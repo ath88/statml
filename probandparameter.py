@@ -1,3 +1,5 @@
+
+# -*- coding: UTF-8 -*-
 # Statistical Methods for Machine Learning
 # Case 1 source code
 # Authors: Asbjørn Thegler, Andreas Bock
