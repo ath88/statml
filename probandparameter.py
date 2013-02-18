@@ -113,10 +113,21 @@ prange = np.arange(0, 10, 0.001)
 plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
 
 # Question 1.7
-#Still need to try with more bins and larger dataset.
-fig = figure()
-ax = fig.add_subplot(111, projection='3d')
-hist, xedges, yedges = histogram2d(x1s, x2s, bins=8)
+N = 100
+bins = 20
+
+bBig = np.random.normal(0,1,N*2)
+ZrandomsBig = np.reshape(bBig,(N,2))
+
+ySamplesBig = []
+for i in ZrandomsBig:
+	z = i.T # transpose
+	ySamplesBig.append((means + np.dot(L,z)))
+
+x1b = [i[:,0][0,0] for i in ySamplesBig]
+x2b = [i[:,1][0,0] for i in ySamplesBig]
+
+hist, xedges, yedges = histogram2d(x1b, x2b, bins=bins)
 
 elements = (len(xedges) - 1) * (len(yedges) - 1)
 xpos, ypos = meshgrid(xedges[:-1]+0.1, yedges[:-1]+0.1)
@@ -124,11 +135,16 @@ xpos, ypos = meshgrid(xedges[:-1]+0.1, yedges[:-1]+0.1)
 xpos = xpos.flatten()
 ypos = ypos.flatten()
 zpos = np.zeros(elements)
-dx = 0.34 * ones_like(zpos)
+dx = 0.12 * ones_like(zpos)
 dy = dx.copy()
 dz = hist.flatten()
 
-ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
+title("Histogram, 20 bins, 100 samples")
+
+#draw graph
+#fig = figure()
+#ax = fig.add_subplot(111, projection='3d')
+#ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
 show()
 
