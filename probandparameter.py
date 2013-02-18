@@ -69,11 +69,13 @@ ax = Axes3D(fig)
 X = np.arange(-4, 4, 0.25)
 Y = np.arange(-4, 4, 0.25)
 X, Y = np.meshgrid(X, Y)
-R = sam
-Z = np.sin(R)
+#R = sam
+#Z = np.sin(R)
 
-ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='hot')
-show()
+#ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='hot')
+#show()
+
+
 
 
 
