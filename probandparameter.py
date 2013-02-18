@@ -81,11 +81,6 @@ diff_in_mean = abs(sampleMeans - means)
 # Question 1.5
 # Complete, 8 bins seems to be the best
 bins = 8
-x1s = []
-x2s = []
-for i in ySamples:
-  x1s.append(i[:,0][0,0])
-  x2s.append(i[:,1][0,0])
 
 figure()
 histo1 = histogram(x1s,bins)
