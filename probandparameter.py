@@ -155,16 +155,60 @@ title("Histogram, 20 bins, 100 samples")
 #show()
 
 # Question 1.8
+def ptransform(y,lda):
+	if y < 0:
+		raise Exception("y must be non-negative.")
+	return lda*exp(-lda*y)
 
-#def ptransform
+def generateValues (lda, L, count):
+	mu_y = 1/lda
+	mu_est = 0
+	for i in range(1,count):
+		y = np.random.normal(0,1,L)
+		tmpySum = 0
+		for i in range(1,L):
+			tmpySum += y[i-1]**i
+                tmpySum = tmpySum / L
+		mu_est += abs(mu_y - (tmpySum))
+	mu_est = mu_est / count
+	return something
 
+# generate estimates for ŷ
+# 1000 values for L = 10, L = 100 and L = 1000
 
+# mu_y10 = generateValues(???, 10, 1000)
+# mu_y100 = generateValues(???, 100, 1000)
+# mu_y1000 = generateValues(???, 1000, 1000)
 
+#for i in range(1,1000):
+#	y = np.random.normal(0,1,10)
+#	tmpySum = 0
+#	for i in range(1,10):
+#		tmpySum += y[i-1]**i
+#	tmpySum /= 10
+#	ySum10 += tmpySum
+#ySum10 /= 1000
+#
+#for i in range(1,1000):
+#	y = np.random.normal(0,1,100)
+#	tmpySum = 0
+#	for i in range(1,100):
+#		tmpySum += y[i-1]**i
+#	tmpySum /= 100
+#	ySum100 += tmpySum
+#ySum100 /= 1000
+#
+#for i in range(1,1000):
+#	y = np.random.normal(0,1,1000)
+#	tmpySum = 0
+#	for i in range(1,1000):
+#		tmpySum += y[i-1]**i
+#	tmpySum /= 1000
+#	ySum1000 += tmpySum
+#ySum1000 /= 1000
 
 
 # Question 1.9
-
-
 im = Image.open("kande1.pnm").crop((150,264,330,328))
 
 b = []
