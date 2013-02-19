@@ -9,6 +9,7 @@ from scipy.stats import norm
 from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
+from PIL import Image
 
 # Helper functions
 # Might be useful later?
@@ -151,8 +152,24 @@ title("Histogram, 20 bins, 100 samples")
 #ax = fig.add_subplot(111, projection='3d')
 #ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
-show()
+#show()
 
 # Question 1.8
 
 #def ptransform
+
+
+
+
+
+# Question 1.9
+
+
+im = Image.open("kande1.pnm").crop((150,264,330,328))
+
+b = []
+for a in im.getcolors(10000000): #number is max amount of different colors. output i (a (r,g,b)) where a is occurrences of the color
+  for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
+    b.append(a[1]) 
+#print b
+
