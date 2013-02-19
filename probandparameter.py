@@ -9,6 +9,7 @@ from scipy.stats import norm
 from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
+from PIL import Image
 
 # Helper functions
 # Might be useful later?
@@ -22,18 +23,23 @@ import mpl_toolkits.mplot3d.axes3d as plot3d
 ax = gca()
 ax.yaxis.set_visible(False)
 
-n = 50
-a = np.random.normal(-1,1,n)
-#scatter(a, [0]*n)
-#draw()
+x = linspace(-6,8,200)
 
-a = np.random.normal(0,2,n)
-#scatter(a, [1]*n)
-#draw()
+mean = -1
+variance = 1
+sigma = sqrt(variance)
+#plot(x,normpdf(x,mean,sigma))
 
-a = np.random.normal(2,3,n)
-#scatter(a, [2]*n)
-#show()
+mean = 0
+variance = 2
+sigma = sqrt(variance)
+#plot(x,normpdf(x,mean,sigma))
+
+mean = 2
+variance = 3
+sigma = sqrt(variance)
+#plot(x,normpdf(x,mean,sigma))
+title("3 Gaussian distribution functions with different mean and standard deviation")
 
 # Question 1.2
 
@@ -79,13 +85,8 @@ scatter(sampleMeans[0], sampleMeans[1], color="green")
 diff_in_mean = abs(sampleMeans - means)
 
 # Question 1.5
-
+# Complete, 8 bins seems to be the best
 bins = 8
-x1s = []
-x2s = []
-for i in ySamples:
-  x1s.append(i[:,0][0,0])
-  x2s.append(i[:,1][0,0])
 
 figure()
 histo1 = histogram(x1s,bins)
@@ -115,15 +116,24 @@ xlocs = array(range(len(hist1[0])))+0.1
 
 bar(xlocs, hist1[0])
 prange = np.arange(0, 10, 0.001)
-plt.plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
-#show()
+plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
 
 # Question 1.7
-from mpl_toolkits.mplot3d import Axes3D
+N = 100
+bins = 20
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-hist, xedges, yedges = histogram2d(x1s, x2s, bins=8)
+bBig = np.random.normal(0,1,N*2)
+ZrandomsBig = np.reshape(bBig,(N,2))
+
+ySamplesBig = []
+for i in ZrandomsBig:
+	z = i.T # transpose
+	ySamplesBig.append((means + np.dot(L,z)))
+
+x1b = [i[:,0][0,0] for i in ySamplesBig]
+x2b = [i[:,1][0,0] for i in ySamplesBig]
+
+hist, xedges, yedges = histogram2d(x1b, x2b, bins=bins)
 
 elements = (len(xedges) - 1) * (len(yedges) - 1)
 xpos, ypos = meshgrid(xedges[:-1]+0.1, yedges[:-1]+0.1)
@@ -131,16 +141,20 @@ xpos, ypos = meshgrid(xedges[:-1]+0.1, yedges[:-1]+0.1)
 xpos = xpos.flatten()
 ypos = ypos.flatten()
 zpos = np.zeros(elements)
-dx = 0.34 * ones_like(zpos)
+dx = 0.12 * ones_like(zpos)
 dy = dx.copy()
 dz = hist.flatten()
 
-ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
+title("Histogram, 20 bins, 100 samples")
 
-#plt.show()
+#draw graph
+#fig = figure()
+#ax = fig.add_subplot(111, projection='3d')
+#ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
+
+#show()
 
 # Question 1.8
-
 def ptransform(y,lda):
 	if y < 0:
 		raise Exception("y must be non-negative.")
@@ -154,8 +168,9 @@ def generateValues (lda, L, count):
 		tmpySum = 0
 		for i in range(1,L):
 			tmpySum += y[i-1]**i
-		mu_est += abs(mu_y - (tmpySum /= L))
-	mu_est /= count
+                tmpySum = tmpySum / L
+		mu_est += abs(mu_y - (tmpySum))
+	mu_est = mu_est / count
 	return something
 
 # generate estimates for ŷ
@@ -164,3 +179,45 @@ def generateValues (lda, L, count):
 # mu_y10 = generateValues(???, 10, 1000)
 # mu_y100 = generateValues(???, 100, 1000)
 # mu_y1000 = generateValues(???, 1000, 1000)
+
+# Question 1.9
+im = Image.open("kande1.pnm").crop((150,264,330,328))
+
+r = []
+g = []
+b = []
+for a in im.getcolors(10000000): #number is max amount of different colors. output i (a (r,g,b)) where a is occurrences of the color
+  for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
+    r.append(a[1][0])
+    g.append(a[1][1]) 
+    b.append(a[1][2]) 
+
+rMean = sum(r)/len(r)
+gMean = sum(g)/len(g)
+bMean = sum(b)/len(b)
+
+raw = matrix([r,g,b]).transpose()
+print raw
+
+ones = matrix(ones((len(r),len(r)),dtype=int))
+print ones
+
+dot = ones.dot(raw) * 1/len(r)
+print dot
+
+a = raw - dot
+print a
+
+aa = a.transpose().dot(a)
+print aa
+
+cov = aa* 1/len(r)
+print cov
+
+#figure()
+#scatter(r, g)
+#figure()
+#scatter(r, b)
+#figure()
+#scatter(b, g)
+#show()
