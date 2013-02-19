@@ -211,9 +211,22 @@ def generateValues (lda, L, count):
 # Question 1.9
 im = Image.open("kande1.pnm").crop((150,264,330,328))
 
+r = []
+g = []
 b = []
 for a in im.getcolors(10000000): #number is max amount of different colors. output i (a (r,g,b)) where a is occurrences of the color
   for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
-    b.append(a[1]) 
-#print b
+    r.append(a[1][0])
+    g.append(a[1][1]) 
+    b.append(a[1][2]) 
+
+#figure()
+#scatter(r, g)
+#figure()
+#scatter(r, b)
+#figure()
+#scatter(b, g)
+#show()
+
+
 
