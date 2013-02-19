@@ -220,6 +220,28 @@ for a in im.getcolors(10000000): #number is max amount of different colors. outp
     g.append(a[1][1]) 
     b.append(a[1][2]) 
 
+rMean = sum(r)/len(r)
+gMean = sum(g)/len(g)
+bMean = sum(b)/len(b)
+
+raw = matrix([r,g,b]).transpose()
+print raw
+
+ones = matrix(ones((len(r),len(r)),dtype=int))
+print ones
+
+dot = ones.dot(raw) * 1/len(r)
+print dot
+
+a = raw - dot
+print a
+
+aa = a.transpose().dot(a)
+print aa
+
+cov = aa* 1/len(r)
+print cov
+
 #figure()
 #scatter(r, g)
 #figure()
@@ -227,6 +249,4 @@ for a in im.getcolors(10000000): #number is max amount of different colors. outp
 #figure()
 #scatter(b, g)
 #show()
-
-
 
