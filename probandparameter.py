@@ -1,11 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 # -*- coding: UTF-8 -*-
 # Statistical Methods for Machine Learning
 # Case 1 source code
 # Authors: Asbjørn Thegler, Andreas Bock, Joachim Vig
 #
 import math
-from scipy.stats import norm
+#from scipy.stats import norm
 from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
@@ -20,27 +20,32 @@ from PIL import Image
 #	return const*np.exp(-0.5*x_mu*precision*x_mu.T)
 
 # Question 1.1
+title("3 Gaussian distribution functions with different mean and standard deviation")
+ylabel('y')
+xlabel('x')
+axis([-7,9,0,0.5])
+
 ax = gca()
-ax.yaxis.set_visible(False)
+#ax.yaxis.set_visible(True)
 
 x = linspace(-6,8,200)
 
 mean = -1
 variance = 1
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
 
 mean = 0
 variance = 2
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
 
 mean = 2
 variance = 3
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
-title("3 Gaussian distribution functions with different mean and standard deviation")
+plot(x,normpdf(x,mean,sigma))
 
+figure()
 # Question 1.2
 
 means = np.array([1,1])
@@ -57,6 +62,7 @@ ySamples = []
 for i in Zrandoms:
 	z = i.T # transpose
 	ySamples.append((means + np.dot(L,z)))
+
 # Question 1.3
 # Estimation of sample μ and sample Σ:
 
@@ -82,7 +88,9 @@ scatter(x1s, x2s)
 scatter(means[0], means[1], color="red")
 scatter(sampleMeans[0], sampleMeans[1], color="green")
 
+# The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
+print(diff_in_mean)
 
 # Question 1.5
 # Complete, 8 bins seems to be the best
@@ -105,19 +113,22 @@ title("x2 values")
 bar(xlocations2+0.2,histo2[0])
 
 # Question 1.6
-
 figure()
 title('Histogram estimate of p(x1)')
-pX1 = array([k for (k,v) in Zrandoms])
-hist1 = histogram(pX1, density=True)
+hist1 = histogram(x1s, density=True)
 xlocs = array(range(len(hist1[0])))+0.1
-#bar(xlocs, hist1[0])
-#figure()
+n, bins, patches = hist(hist1[0], xlocs, log=False, align='left', normed=True)
+loc, scale = 0., 0.54
+#plot(hist1[0], norm.pdf)
+hist(hist1, xlocs)
+show()
+#bar(xlocs, hist1[1])
+figure()
 
 bar(xlocs, hist1[0])
 prange = np.arange(0, 10, 0.001)
 plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
-
+show()
 # Question 1.7
 N = 100
 bins = 20
@@ -168,7 +179,7 @@ def generateValues (lda, L, count):
 		tmpySum = 0
 		for i in range(1,L):
 			tmpySum += y[i-1]**i
-                tmpySum = tmpySum / L
+			tmpySum = tmpySum / L
 		mu_est += abs(mu_y - (tmpySum))
 	mu_est = mu_est / count
 	return something
@@ -196,24 +207,24 @@ rMean = sum(r)/len(r)
 gMean = sum(g)/len(g)
 bMean = sum(b)/len(b)
 
-raw = matrix([r,g,b]).transpose()
-print raw
-
-ones = matrix(ones((len(r),len(r)),dtype=int))
-print ones
-
-dot = ones.dot(raw) * 1/len(r)
-print dot
-
-a = raw - dot
-print a
-
-aa = a.transpose().dot(a)
-print aa
-
-cov = aa* 1/len(r)
-print cov
-
+#raw = matrix([r,g,b]).transpose()
+#print raw
+#
+#ones = matrix(ones((len(r),len(r)),dtype=int))
+#print ones
+#
+#dot = ones.dot(raw) * 1/len(r)
+#print dot
+#
+#a = raw - dot
+#print a
+#
+#aa = a.transpose().dot(a)
+#print aa
+#
+#cov = aa* 1/len(r)
+#print cov
+#
 #figure()
 #scatter(r, g)
 #figure()
