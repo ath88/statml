@@ -12,14 +12,6 @@ import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
 from PIL import Image
 
-# Helper functions
-# Might be useful later?
-#def multi_norm (x,y,sigma,mu):
-#	const = 1.0/(np.power(2*np.pi,len(mu)/2)*np.sqrt(np.linalg.det(sigma)))
-#	x_mu = np.array((x-mu))
-#	precision = np.matrix(sigma).I
-#	return const*np.exp(-0.5*x_mu*precision*x_mu.T)
-
 # Question 1.1
 
 title("3 Gaussian distribution functions with different mean and standard deviation")
@@ -90,7 +82,7 @@ title('Maximum likelihood sample mean')
 
 # The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
-print(diff_in_mean)
+#print(diff_in_mean)
 
 # Question 1.5
 # Complete, 8 bins seems to be the best
@@ -124,8 +116,8 @@ plot(norm_xlocs, normpdf(norm_xlocs, 5, math.sqrt(6)))
 bar(xlocs, hist1[0]/100)
 xlim(xlocs[0]-2, xlocs[-1]+2)
 ylim(0,1)
-show()
-figure()
+#show()
+#figure()
 
 #bar(xlocs, hist1[0])
 #prange = np.arange(0, 10, 0.001)
@@ -209,10 +201,10 @@ plot(lvalues, abs_deviations)
 
 
 # Plotting a transformed value
-fig = figure()
+#fig = figure()
 title('Expected absolute deviation [transformed]')
 grid(True)
-ax = fig.add_subplot(1,1,1)
+#ax = fig.add_subplot(1,1,1)
 ax.set_yscale('log')
 ax.set_xscale('log')
 ylabel('y')
@@ -222,17 +214,35 @@ xlabel('x')
 #show()
 
 # Question 1.9
+
+# Helper function
+def multi_norm (x, sigma, mu):
+	const = 1.0/(((2*np.pi)**(len(mu.T)/2))*np.sqrt(np.linalg.det(sigma)))
+	part1 = 1/((2*np.pi)**(len(mu)/2))
+	part2 = 1/(np.linalg.det(sigma)**0.5)
+	x_mu = np.matrix((x-mu)).T
+	precision = np.matrix(sigma).I
+	return const*np.exp(-0.5*dot(x_mu.T, dot(precision, x_mu)))
+
+def reDraw(pixel, sigma, mu):
+	mnorm = multi_norm(pixel, sigma, mu)
+	if mnorm > multi_norm(mu, sigma, mu):
+		return (255,255,255)
+	return (0,0,0)
+
 im = Image.open("kande1.pnm").crop((150,264,330,328))
+
 
 r = []
 g = []
 b = []
 for a in im.getcolors(10000000): #number is max amount of different colors. output i (a (r,g,b)) where a is occurrences of the color
-  for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
-    r.append(a[1][0])
-    g.append(a[1][1]) 
-    b.append(a[1][2]) 
+	for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
+		r.append(a[1][0])
+		g.append(a[1][1]) 
+		b.append(a[1][2]) 
 
+# Maximum likelihood estimate for sample mean
 mean = []
 mean.append(sum(r)/len(r))
 mean.append(sum(g)/len(g))
@@ -241,6 +251,7 @@ mean = matrix(mean)
 
 result = matrix(zeros((3,3),dtype=int))
 
+# Maximum likelihood estimate for sample cov matrix (2.122)
 for i in range(0,len(r)):
   raw = matrix([r[i],g[i],b[i]])
   sub = raw - mean
@@ -248,7 +259,6 @@ for i in range(0,len(r)):
 
 result = result * 1/len(r)
 cov = result
-print cov
 
 b = matrix([[255,255,255]])
 b = mean
@@ -258,16 +268,28 @@ part2 = 1/(np.linalg.det(cov)**(0.5))
 
 dev = (b-mean).transpose()
 part3 = np.exp((-1/2) * dot(dev.transpose(), dot(np.linalg.inv(cov), dev)))
+print "PART123", part1*part2*part3
+print "MNORM FUN", multi_norm(b, cov, mean)
 
-print part1*part2*part3
+# Process all pixels
+im = Image.open("kande1.pnm")
+pixs = im.load()
+
+for i in range(0,im.size[0]): # width of image
+	for j in range(0,im.size[1]): #height of image
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+
+im.save('my_image.jpg')
+
+
+#print type(b), type(cov), type(mean)
+#print (b), (cov), (mean)
 
 #figure()
 #scatter(r, g)
 #figure()
 #scatter(r, b)
 #figure()
-#scatter(b, g)
-#show()
-
+#scatter(b, g) #show()
 
 #tester push og commit i git
