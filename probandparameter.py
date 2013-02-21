@@ -1,11 +1,12 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 # -*- coding: UTF-8 -*-
 # Statistical Methods for Machine Learning
 # Case 1 source code
 # Authors: Asbjørn Thegler, Andreas Bock, Joachim Vig
 #
+from __future__ import division
 import math
-from scipy.stats import norm
+#from scipy.stats import norm
 from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
@@ -20,9 +21,13 @@ from PIL import Image
 #	return const*np.exp(-0.5*x_mu*precision*x_mu.T)
 
 # Question 1.1
-ax = gca()
-ax.yaxis.set_visible(False)
 
+title("3 Gaussian distribution functions with different mean and standard deviation")
+ylabel('y')
+xlabel('x')
+axis([-7,9,0,0.5])
+
+ax = gca()
 x = linspace(-6,8,200)
 
 mean = -1
@@ -39,7 +44,7 @@ mean = 2
 variance = 3
 sigma = sqrt(variance)
 #plot(x,normpdf(x,mean,sigma))
-title("3 Gaussian distribution functions with different mean and standard deviation")
+
 
 # Question 1.2
 
@@ -57,6 +62,7 @@ ySamples = []
 for i in Zrandoms:
 	z = i.T # transpose
 	ySamples.append((means + np.dot(L,z)))
+
 # Question 1.3
 # Estimation of sample μ and sample Σ:
 
@@ -78,45 +84,53 @@ sampleVar = sampleVar/observations
 
 # Plot sample mean, mean and data points
 title('Maximum likelihood sample mean')
-scatter(x1s, x2s)
-scatter(means[0], means[1], color="red")
-scatter(sampleMeans[0], sampleMeans[1], color="green")
+#scatter(x1s, x2s)
+#scatter(means[0], means[1], color="red")
+#scatter(sampleMeans[0], sampleMeans[1], color="green")
 
+# The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
+print(diff_in_mean)
 
 # Question 1.5
 # Complete, 8 bins seems to be the best
 bins = 8
 
-figure()
+#figure()
 histo1 = histogram(x1s,bins)
 xlocations1 = array(range(len(histo1[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x1 values")
-bar(xlocations1,histo1[0])
+#bar(xlocations1,histo1[0])
 
-figure()
+#figure()
 histo2 = histogram(x2s,bins)
 xlocations2 = array(range(len(histo2[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x2 values")
-bar(xlocations2+0.2,histo2[0])
+#bar(xlocations2+0.2,histo2[0])
 
 # Question 1.6
-
-figure()
-title('Histogram estimate of p(x1)')
-pX1 = array([k for (k,v) in Zrandoms])
-hist1 = histogram(pX1, density=True)
-xlocs = array(range(len(hist1[0])))+0.1
-#bar(xlocs, hist1[0])
 #figure()
+#title('Histogram estimate of p(x1)')
+# Plot the histogram estimate
+hist1 = histogram(x1s, density=False)
+xlocs = array(range(len(hist1[0])))+0.1
+# Plot the analytical solution
+norm_xlocs = linspace(-2,12,200)
+plot(norm_xlocs, normpdf(norm_xlocs, 5, math.sqrt(6)))
+bar(xlocs, hist1[0]/100)
+xlim(xlocs[0]-2, xlocs[-1]+2)
+ylim(0,1)
+show()
+figure()
 
-bar(xlocs, hist1[0])
-prange = np.arange(0, 10, 0.001)
-plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
+#bar(xlocs, hist1[0])
+#prange = np.arange(0, 10, 0.001)
+#plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
+#show()
 
 # Question 1.7
 N = 100
@@ -164,21 +178,48 @@ def generateValues (lda, L, count):
 	mu_y = 1/lda
 	mu_est = 0
 	for i in range(1,count):
-		y = np.random.normal(0,1,L)
+		y = np.random.uniform(0,1,L)
 		tmpySum = 0
 		for i in range(1,L):
 			tmpySum += y[i-1]**i
-                tmpySum = tmpySum / L
-		mu_est += abs(mu_y - (tmpySum))
-	mu_est = mu_est / count
-	return something
+		tmpySum /= L
+		mu_est += abs(mu_y - tmpySum)
+	mu_est /= count
+	return mu_est
 
-# generate estimates for ŷ
-# 1000 values for L = 10, L = 100 and L = 1000
+# We fix lambda = 10
+l = 10
 
-# mu_y10 = generateValues(???, 10, 1000)
-# mu_y100 = generateValues(???, 100, 1000)
-# mu_y1000 = generateValues(???, 1000, 1000)
+# We now plot the expected absolute deviation
+# x-values
+lvalues = range(1,500,5)
+abs_deviations = [generateValues(l, i, 10) for i in lvalues]
+
+
+# Plotting the absolute deviation
+title('Expected absolute deviation')
+ax.xaxis.set_visible(True)
+ylabel('y')
+xlabel('x')
+xlim(6,500)
+ylim(0,0.25)
+grid(True)
+plot(lvalues, abs_deviations)
+#show()
+
+
+# Plotting a transformed value
+fig = figure()
+title('Expected absolute deviation [transformed]')
+grid(True)
+ax = fig.add_subplot(1,1,1)
+ax.set_yscale('log')
+ax.set_xscale('log')
+ylabel('y')
+xlabel('x')
+
+#plot(lvalues, abs_deviations)
+#show()
 
 # Question 1.9
 im = Image.open("kande1.pnm").crop((150,264,330,328))
@@ -196,24 +237,24 @@ rMean = sum(r)/len(r)
 gMean = sum(g)/len(g)
 bMean = sum(b)/len(b)
 
-raw = matrix([r,g,b]).transpose()
-print raw
-
-ones = matrix(ones((len(r),len(r)),dtype=int))
-print ones
-
-dot = ones.dot(raw) * 1/len(r)
-print dot
-
-a = raw - dot
-print a
-
-aa = a.transpose().dot(a)
-print aa
-
-cov = aa* 1/len(r)
-print cov
-
+#raw = matrix([r,g,b]).transpose()
+#print raw
+#
+#ones = matrix(ones((len(r),len(r)),dtype=int))
+#print ones
+#
+#dot = ones.dot(raw) * 1/len(r)
+#print dot
+#
+#a = raw - dot
+#print a
+#
+#aa = a.transpose().dot(a)
+#print aa
+#
+#cov = aa* 1/len(r)
+#print cov
+#
 #figure()
 #scatter(r, g)
 #figure()
