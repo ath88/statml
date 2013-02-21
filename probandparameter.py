@@ -228,3 +228,6 @@ print part1*part2*part3
 #figure()
 #scatter(b, g)
 #show()
+
+
+#tester push og commit i git
