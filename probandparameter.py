@@ -221,3 +221,6 @@ print cov
 #figure()
 #scatter(b, g)
 #show()
+
+
+#tester push og commit i git
