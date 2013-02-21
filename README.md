@@ -5,9 +5,10 @@ We use python and the following packages have to be installed:
 scipy
 numpy
 pylab
+PIL
 
 On Arch, this can be done be executing the following command:
-sudo pacman -S python-scipy python-numpy python-matplotlib
+sudo pacman -S python-scipy python-numpy python-matplotlib python-imaging
 On Ubuntu:
-sudo apt-get install python-numpy python-scipy python-matplotlib
+sudo apt-get install python-numpy python-scipy python-matplotlib python-imaging
 If you are using Mac OS X or Windows then you're a lost soul and you have to figure out how to manage on your own
