@@ -4,6 +4,7 @@
 # Case 1 source code
 # Authors: Asbjørn Thegler, Andreas Bock, Joachim Vig
 #
+from __future__ import division
 import math
 #from scipy.stats import norm
 from pylab import *
@@ -20,32 +21,31 @@ from PIL import Image
 #	return const*np.exp(-0.5*x_mu*precision*x_mu.T)
 
 # Question 1.1
+
 title("3 Gaussian distribution functions with different mean and standard deviation")
 ylabel('y')
 xlabel('x')
 axis([-7,9,0,0.5])
 
 ax = gca()
-#ax.yaxis.set_visible(True)
-
 x = linspace(-6,8,200)
 
 mean = -1
 variance = 1
 sigma = sqrt(variance)
-plot(x,normpdf(x,mean,sigma))
+#plot(x,normpdf(x,mean,sigma))
 
 mean = 0
 variance = 2
 sigma = sqrt(variance)
-plot(x,normpdf(x,mean,sigma))
+#plot(x,normpdf(x,mean,sigma))
 
 mean = 2
 variance = 3
 sigma = sqrt(variance)
-plot(x,normpdf(x,mean,sigma))
+#plot(x,normpdf(x,mean,sigma))
 
-figure()
+
 # Question 1.2
 
 means = np.array([1,1])
@@ -84,9 +84,9 @@ sampleVar = sampleVar/observations
 
 # Plot sample mean, mean and data points
 title('Maximum likelihood sample mean')
-scatter(x1s, x2s)
-scatter(means[0], means[1], color="red")
-scatter(sampleMeans[0], sampleMeans[1], color="green")
+#scatter(x1s, x2s)
+#scatter(means[0], means[1], color="red")
+#scatter(sampleMeans[0], sampleMeans[1], color="green")
 
 # The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
@@ -96,39 +96,42 @@ print(diff_in_mean)
 # Complete, 8 bins seems to be the best
 bins = 8
 
-figure()
+#figure()
 histo1 = histogram(x1s,bins)
 xlocations1 = array(range(len(histo1[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x1 values")
-bar(xlocations1,histo1[0])
+#bar(xlocations1,histo1[0])
 
-figure()
+#figure()
 histo2 = histogram(x2s,bins)
 xlocations2 = array(range(len(histo2[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x2 values")
-bar(xlocations2+0.2,histo2[0])
+#bar(xlocations2+0.2,histo2[0])
 
 # Question 1.6
-figure()
-title('Histogram estimate of p(x1)')
-hist1 = histogram(x1s, density=True)
+#figure()
+#title('Histogram estimate of p(x1)')
+# Plot the histogram estimate
+hist1 = histogram(x1s, density=False)
 xlocs = array(range(len(hist1[0])))+0.1
-n, bins, patches = hist(hist1[0], xlocs, log=False, align='left', normed=True)
-loc, scale = 0., 0.54
-#plot(hist1[0], norm.pdf)
-hist(hist1, xlocs)
+# Plot the analytical solution
+norm_xlocs = linspace(-2,12,200)
+plot(norm_xlocs, normpdf(norm_xlocs, 5, math.sqrt(6)))
+bar(xlocs, hist1[0]/100)
+xlim(xlocs[0]-2, xlocs[-1]+2)
+ylim(0,1)
 show()
-#bar(xlocs, hist1[1])
 figure()
 
-bar(xlocs, hist1[0])
-prange = np.arange(0, 10, 0.001)
-plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
-show()
+#bar(xlocs, hist1[0])
+#prange = np.arange(0, 10, 0.001)
+#plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
+#show()
+
 # Question 1.7
 N = 100
 bins = 20
@@ -175,21 +178,48 @@ def generateValues (lda, L, count):
 	mu_y = 1/lda
 	mu_est = 0
 	for i in range(1,count):
-		y = np.random.normal(0,1,L)
+		y = np.random.uniform(0,1,L)
 		tmpySum = 0
 		for i in range(1,L):
 			tmpySum += y[i-1]**i
-			tmpySum = tmpySum / L
-		mu_est += abs(mu_y - (tmpySum))
-	mu_est = mu_est / count
-	return something
+		tmpySum /= L
+		mu_est += abs(mu_y - tmpySum)
+	mu_est /= count
+	return mu_est
 
-# generate estimates for ŷ
-# 1000 values for L = 10, L = 100 and L = 1000
+# We fix lambda = 10
+l = 10
 
-# mu_y10 = generateValues(???, 10, 1000)
-# mu_y100 = generateValues(???, 100, 1000)
-# mu_y1000 = generateValues(???, 1000, 1000)
+# We now plot the expected absolute deviation
+# x-values
+lvalues = range(1,500,5)
+abs_deviations = [generateValues(l, i, 10) for i in lvalues]
+
+
+# Plotting the absolute deviation
+title('Expected absolute deviation')
+ax.xaxis.set_visible(True)
+ylabel('y')
+xlabel('x')
+xlim(6,500)
+ylim(0,0.25)
+grid(True)
+plot(lvalues, abs_deviations)
+#show()
+
+
+# Plotting a transformed value
+fig = figure()
+title('Expected absolute deviation [transformed]')
+grid(True)
+ax = fig.add_subplot(1,1,1)
+ax.set_yscale('log')
+ax.set_xscale('log')
+ylabel('y')
+xlabel('x')
+
+#plot(lvalues, abs_deviations)
+#show()
 
 # Question 1.9
 im = Image.open("kande1.pnm").crop((150,264,330,328))
