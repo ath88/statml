@@ -192,27 +192,34 @@ for a in im.getcolors(10000000): #number is max amount of different colors. outp
     g.append(a[1][1]) 
     b.append(a[1][2]) 
 
-rMean = sum(r)/len(r)
-gMean = sum(g)/len(g)
-bMean = sum(b)/len(b)
+mean = []
+mean.append(sum(r)/len(r))
+mean.append(sum(g)/len(g))
+mean.append(sum(b)/len(b))
+mean = matrix(mean)
 
-raw = matrix([r,g,b]).transpose()
-print raw
+result = matrix(zeros((3,3),dtype=int))
 
-ones = matrix(ones((len(r),len(r)),dtype=int))
-print ones
+for i in range(0,len(r)):
+  raw = matrix([r[i],g[i],b[i]])
+  sub = raw - mean
+  result = result + dot(sub.transpose(),sub)
 
-dot = ones.dot(raw) * 1/len(r)
-print dot
-
-a = raw - dot
-print a
-
-aa = a.transpose().dot(a)
-print aa
-
-cov = aa* 1/len(r)
+result = result * 1/len(r)
+cov = result
 print cov
+
+b = matrix([[255,255,255]])
+b = mean
+
+part1 = 1/((2*np.pi)**(3/2))
+part2 = 1/(np.linalg.det(cov)**(0.5))
+
+dev = (b-mean).transpose()
+part3 = np.exp((-1/2) * dot(dev.transpose(), dot(np.linalg.inv(cov), dev)))
+
+print part1*part2*part3
+
 
 #figure()
 #scatter(r, g)
