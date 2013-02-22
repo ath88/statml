@@ -226,27 +226,32 @@ def multi_norm (x, sigma, mu):
 
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
-	if mnorm > multi_norm(mu, sigma, mu):
+	meanColour = multi_norm(mu, sigma, mu)
+	print mnorm, " --- ", meanColour
+	#print mnorm - meanColour
+	if mnorm > meanColour/5:
 		return (255,255,255)
 	return (0,0,0)
 
-im = Image.open("kande1.pnm").crop((150,264,330,328))
-
+# Process training set
+im = Image.open("kande1.JPG").crop((150,264,330,328))
 
 r = []
 g = []
 b = []
-for a in im.getcolors(10000000): #number is max amount of different colors. output i (a (r,g,b)) where a is occurrences of the color
-	for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
-		r.append(a[1][0])
-		g.append(a[1][1]) 
-		b.append(a[1][2]) 
+length = 0
+for a in im.getcolors(10000000): 
+	occ = a[0]
+	r.append(a[1][0]*occ)
+	g.append(a[1][1]*occ)
+	b.append(a[1][2]*occ)
 
 # Maximum likelihood estimate for sample mean
 mean = []
 mean.append(sum(r)/len(r))
 mean.append(sum(g)/len(g))
 mean.append(sum(b)/len(b))
+#print mean
 mean = matrix(mean)
 
 result = matrix(zeros((3,3),dtype=int))
@@ -257,39 +262,24 @@ for i in range(0,len(r)):
   sub = raw - mean
   result = result + dot(sub.transpose(),sub)
 
+#print result
 result = result * 1/len(r)
+#print result
 cov = result
 
-b = matrix([[255,255,255]])
-b = mean
-
-part1 = 1/((2*np.pi)**(3/2))
-part2 = 1/(np.linalg.det(cov)**(0.5))
-
-dev = (b-mean).transpose()
-part3 = np.exp((-1/2) * dot(dev.transpose(), dot(np.linalg.inv(cov), dev)))
-print "PART123", part1*part2*part3
-print "MNORM FUN", multi_norm(b, cov, mean)
+#print "MEAN: ", multi_norm(mean, cov, mean)
 
 # Process all pixels
-im = Image.open("kande1.pnm")
+im = Image.open("kande1.JPG")
 pixs = im.load()
+
+#for i in range(0,im.size[0]): # width of image
+#	pixs[i,i] = reDraw(pixs[i,i], cov, mean)
 
 for i in range(0,im.size[0]): # width of image
 	for j in range(0,im.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+		az = reDraw(pixs[i,j], cov, mean)
+		pixs[i,j] = az
+		print az
 
 im.save('my_image.jpg')
-
-
-#print type(b), type(cov), type(mean)
-#print (b), (cov), (mean)
-
-#figure()
-#scatter(r, g)
-#figure()
-#scatter(r, b)
-#figure()
-#scatter(b, g) #show()
-
-#tester push og commit i git
