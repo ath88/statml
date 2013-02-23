@@ -227,9 +227,7 @@ def multi_norm (x, sigma, mu):
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
 	meanColour = multi_norm(mu, sigma, mu)
-	print mnorm, " --- ", meanColour
-	#print mnorm - meanColour
-	if mnorm > meanColour/5:
+	if mnorm > meanColour/5: ### WHAT IS GOING ON HERE???
 		return (255,255,255)
 	return (0,0,0)
 
@@ -251,35 +249,75 @@ mean = []
 mean.append(sum(r)/len(r))
 mean.append(sum(g)/len(g))
 mean.append(sum(b)/len(b))
-#print mean
 mean = matrix(mean)
 
-result = matrix(zeros((3,3),dtype=int))
-
 # Maximum likelihood estimate for sample cov matrix (2.122)
+cov = matrix(zeros((3,3),dtype=float64))
 for i in range(0,len(r)):
-  raw = matrix([r[i],g[i],b[i]])
-  sub = raw - mean
-  result = result + dot(sub.transpose(),sub)
-
-#print result
-result = result * 1/len(r)
-#print result
-cov = result
-
-#print "MEAN: ", multi_norm(mean, cov, mean)
+	raw = matrix([r[i],g[i],b[i]])
+	sub = raw - mean
+	cov += dot(sub.transpose(),sub)
+cov /= len(r)
 
 # Process all pixels
 im = Image.open("kande1.JPG")
 pixs = im.load()
 
-#for i in range(0,im.size[0]): # width of image
-#	pixs[i,i] = reDraw(pixs[i,i], cov, mean)
+# UNCOMMENT THE FOLLOWING TO SEE THE NEW IMAGE
 
+## Generate new image
+#for i in range(0,im.size[0]): # width of image
+#	for j in range(0,im.size[1]): #height of image
+#		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+#im.save('new_pitcher.jpg')
+
+# Question 1.10
+
+# Weighted average position
+qhat = [0,0]
+Z = 0
 for i in range(0,im.size[0]): # width of image
 	for j in range(0,im.size[1]): #height of image
-		az = reDraw(pixs[i,j], cov, mean)
-		pixs[i,j] = az
-		print az
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
+		Z += norm_const
+		qhat += list(map(lambda x: x*norm_const, [i,j]))
+qhat /= Z
 
-im.save('my_image.jpg')
+# Spatial covariance
+C = 0
+for i in range(0,im.size[0]): # width of image
+	for j in range(0,im.size[1]): #height of image
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
+		qdiff = np.array([i,j]) - qhat
+		C += np.dot(qdiff, qdiff.T)*norm_const
+C /= Z
+
+# Question 1.11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
