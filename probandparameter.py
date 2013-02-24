@@ -12,14 +12,6 @@ import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
 from PIL import Image
 
-# Helper functions
-# Might be useful later?
-#def multi_norm (x,y,sigma,mu):
-#	const = 1.0/(np.power(2*np.pi,len(mu)/2)*np.sqrt(np.linalg.det(sigma)))
-#	x_mu = np.array((x-mu))
-#	precision = np.matrix(sigma).I
-#	return const*np.exp(-0.5*x_mu*precision*x_mu.T)
-
 # Question 1.1
 
 title("3 Gaussian distribution functions with different mean and standard deviation")
@@ -90,7 +82,7 @@ title('Maximum likelihood sample mean')
 
 # The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
-print(diff_in_mean)
+#print(diff_in_mean)
 
 # Question 1.5
 # Complete, 8 bins seems to be the best
@@ -124,8 +116,8 @@ plot(norm_xlocs, normpdf(norm_xlocs, 5, math.sqrt(6)))
 bar(xlocs, hist1[0]/100)
 xlim(xlocs[0]-2, xlocs[-1]+2)
 ylim(0,1)
-show()
-figure()
+#show()
+#figure()
 
 #bar(xlocs, hist1[0])
 #prange = np.arange(0, 10, 0.001)
@@ -209,10 +201,10 @@ plot(lvalues, abs_deviations)
 
 
 # Plotting a transformed value
-fig = figure()
+#fig = figure()
 title('Expected absolute deviation [transformed]')
 grid(True)
-ax = fig.add_subplot(1,1,1)
+#ax = fig.add_subplot(1,1,1)
 ax.set_yscale('log')
 ax.set_xscale('log')
 ylabel('y')
@@ -222,50 +214,86 @@ xlabel('x')
 #show()
 
 # Question 1.9
-im = Image.open("kande1.pnm").crop((150,264,330,328))
+
+# Helper function
+def multi_norm (x, sigma, mu):
+	const = 1.0/(((2*np.pi)**(len(mu.T)/2))*np.sqrt(np.linalg.det(sigma)))
+	part1 = 1/((2*np.pi)**(len(mu)/2))
+	part2 = 1/(np.linalg.det(sigma)**0.5)
+	x_mu = np.matrix((x-mu)).T
+	precision = np.matrix(sigma).I
+	return const*np.exp(-0.5*dot(x_mu.T, dot(precision, x_mu)))
+
+def reDraw(pixel, sigma, mu):
+	mnorm = multi_norm(pixel, sigma, mu)
+	meanColour = multi_norm(mu, sigma, mu)
+	if mnorm > meanColour/5: ### WHAT IS GOING ON HERE???
+		return (255,255,255)
+	return (0,0,0)
+
+# Process training set
+im = Image.open("kande1.JPG").crop((150,264,330,328))
 
 r = []
 g = []
 b = []
-for a in im.getcolors(10000000): #number is max amount of different colors. output i (a (r,g,b)) where a is occurrences of the color
-  for i in range(0,a[0]):        #expanding, so every pixel is represented by an rgb-tuple exactly once
-    r.append(a[1][0])
-    g.append(a[1][1]) 
-    b.append(a[1][2]) 
+length = 0
+for a in im.getcolors(10000000): 
+	occ = a[0]
+	r.append(a[1][0]*occ)
+	g.append(a[1][1]*occ)
+	b.append(a[1][2]*occ)
 
+# Maximum likelihood estimate for sample mean
 mean = []
 mean.append(sum(r)/len(r))
 mean.append(sum(g)/len(g))
 mean.append(sum(b)/len(b))
 mean = matrix(mean)
 
-result = matrix(zeros((3,3),dtype=int))
-
+# Maximum likelihood estimate for sample cov matrix (2.122)
+cov = matrix(zeros((3,3),dtype=float64))
 for i in range(0,len(r)):
-  raw = matrix([r[i],g[i],b[i]])
-  sub = raw - mean
-  result = result + dot(sub.transpose(),sub)
+	raw = matrix([r[i],g[i],b[i]])
+	sub = raw - mean
+	cov += dot(sub.transpose(),sub)
+cov /= len(r)
 
-result = result * 1/len(r)
-cov = result
-print cov
+# Process all pixels
+im = Image.open("kande1.JPG")
+pixs = im.load()
 
-b = matrix([[255,255,255]])
-b = mean
+# UNCOMMENT THE FOLLOWING TO SEE THE NEW IMAGE
 
-part1 = 1/((2*np.pi)**(3/2))
-part2 = 1/(np.linalg.det(cov)**(0.5))
+## Generate new image
+#for i in range(0,im.size[0]): # width of image
+#	for j in range(0,im.size[1]): #height of image
+#		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+#im.save('new_pitcher.jpg')
 
-dev = (b-mean).transpose()
-part3 = np.exp((-1/2) * dot(dev.transpose(), dot(np.linalg.inv(cov), dev)))
+# Question 1.10
 
-print part1*part2*part3
+# Weighted average position
+qhat = [0,0]
+Z = 0
+for i in range(0,im.size[0]): # width of image
+	for j in range(0,im.size[1]): #height of image
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
+		Z += norm_const
+		qhat += list(map(lambda x: x*norm_const, [i,j]))
+qhat /= Z
 
-#figure()
-#scatter(r, g)
-#figure()
-#scatter(r, b)
-#figure()
-#scatter(b, g)
-#show()
+# Spatial covariance
+C = 0
+for i in range(0,im.size[0]): # width of image
+	for j in range(0,im.size[1]): #height of image
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
+		qdiff = np.array([i,j]) - qhat
+		C += np.dot(qdiff, qdiff.T)*norm_const
+C /= Z
+
+# Question 1.11
+
 
