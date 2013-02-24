@@ -6,7 +6,6 @@
 #
 from __future__ import division
 import math
-#from scipy.stats import norm
 from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
@@ -112,7 +111,7 @@ hist1 = histogram(x1s, density=False)
 xlocs = array(range(len(hist1[0])))+0.1
 # Plot the analytical solution
 norm_xlocs = linspace(-2,12,200)
-plot(norm_xlocs, normpdf(norm_xlocs, 5, math.sqrt(6)))
+plot(norm_xlocs, normpdf(norm_xlocs, 5+0.3, math.sqrt(6)))
 bar(xlocs, hist1[0]/100)
 xlim(xlocs[0]-2, xlocs[-1]+2)
 ylim(0,1)
@@ -183,12 +182,12 @@ def generateValues (lda, L, count):
 l = 10
 
 # We now plot the expected absolute deviation
-# x-values
 lvalues = range(1,500,5)
 abs_deviations = [generateValues(l, i, 10) for i in lvalues]
 
-
 # Plotting the absolute deviation
+fig1 = figure()
+ax = gca()
 title('Expected absolute deviation')
 ax.xaxis.set_visible(True)
 ylabel('y')
@@ -197,21 +196,22 @@ xlim(6,500)
 ylim(0,0.25)
 grid(True)
 plot(lvalues, abs_deviations)
-#show()
-
+show()
+#fig1.savefig('q18_1.jpg')
 
 # Plotting a transformed value
-#fig = figure()
+fig2 = figure()
+ax = gca()
 title('Expected absolute deviation [transformed]')
 grid(True)
-#ax = fig.add_subplot(1,1,1)
+ax = fig2.add_subplot(1,1,1)
 ax.set_yscale('log')
 ax.set_xscale('log')
 ylabel('y')
 xlabel('x')
-
-#plot(lvalues, abs_deviations)
-#show()
+plot(lvalues, abs_deviations)
+show()
+#fig2.savefig('q18_2.jpg')
 
 # Question 1.9
 
@@ -227,12 +227,12 @@ def multi_norm (x, sigma, mu):
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
 	meanColour = multi_norm(mu, sigma, mu)
-	if mnorm > meanColour/5: ### WHAT IS GOING ON HERE???
+	if mnorm > meanColour/4.5: ### WHAT IS GOING ON HERE???
 		return (255,255,255)
 	return (0,0,0)
 
 # Process training set
-im = Image.open("kande1.JPG").crop((150,264,330,328))
+im = Image.open("kande1.jpg").crop((150,264,330,328))
 
 r = []
 g = []
@@ -260,16 +260,16 @@ for i in range(0,len(r)):
 cov /= len(r)
 
 # Process all pixels
-im = Image.open("kande1.JPG")
+im = Image.open("kande1.jpg")
 pixs = im.load()
 
 # UNCOMMENT THE FOLLOWING TO SEE THE NEW IMAGE
 
-## Generate new image
-#for i in range(0,im.size[0]): # width of image
-#	for j in range(0,im.size[1]): #height of image
-#		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-#im.save('new_pitcher.jpg')
+# Generate new image
+for i in range(0,im.size[0]): # width of image
+	for j in range(0,im.size[1]): #height of image
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+im.save('new_kande1.jpg')
 
 # Question 1.10
 
@@ -294,30 +294,16 @@ for i in range(0,im.size[0]): # width of image
 		C += np.dot(qdiff, qdiff.T)*norm_const
 C /= Z
 
+# Plot q hat and contours of C on top of our image
+
 # Question 1.11
 
+im2 = Image.open("kande2.jpg")
+pixs = im2.load()
 
+# Generate new image for the second pitcher
+for i in range(0,im2.size[0]): # width of image
+	for j in range(0,im2.size[1]): #height of image
+		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+im2.save('new_kande2.jpg')
