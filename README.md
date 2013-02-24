@@ -1,14 +1,20 @@
-README for Assignment 1 in Statistical Methods for Machine Leaning
+README for StatML assignments
 Authors: Asbjoern Thelger, Joachim Vig, Andreas Bock
-We use python and the following packages have to be installed:
+
+We use python and the following packages have to be installed to run our code:
 
 scipy
 numpy
 pylab
-PIL
+PIL (Python Image Library)
 
-On Arch, this can be done be executing the following command:
+
+INSTALLATION:
+
+On Arch Linux, this can be done be executing the following command:
+
 sudo pacman -S python-scipy python-numpy python-matplotlib python-imaging
+
 On Ubuntu:
+
 sudo apt-get install python-numpy python-scipy python-matplotlib python-imaging
-If you are using Mac OS X or Windows then you're a lost soul and you have to figure out how to manage on your own
