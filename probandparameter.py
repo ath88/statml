@@ -36,7 +36,6 @@ variance = 3
 sigma = sqrt(variance)
 #plot(x,normpdf(x,mean,sigma))
 
-
 # Question 1.2
 
 means = np.array([1,1])
@@ -227,9 +226,13 @@ def multi_norm (x, sigma, mu):
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
 	meanColour = multi_norm(mu, sigma, mu)
-	if mnorm > meanColour/4.5: ### WHAT IS GOING ON HERE???
-		return (255,255,255)
-	return (0,0,0)
+	if mnorm > meanColour/1.07:
+		return (255,255,255) # white
+	elif mnorm > meanColour/1.1:
+		return (192,192,192)
+	elif mnorm > meanColour/1.2:
+		return (112,112,112)
+	return (0,0,0) # black
 
 # Process training set
 im = Image.open("kande1.jpg").crop((150,264,330,328))
@@ -276,12 +279,12 @@ im.save('new_kande1.jpg')
 # Weighted average position
 qhat = [0,0]
 Z = 0
-for i in range(0,im.size[0]): # width of image
-	for j in range(0,im.size[1]): #height of image
+for i in range(0,im.size[0]): 	  # width of image
+	for j in range(0,im.size[1]): # height of image
 		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
 		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
 		Z += norm_const
-		qhat += list(map(lambda x: x*norm_const, [i,j]))
+		qhat += list(map(lambda x: x*norm_const, np.array([i,j])))
 qhat /= Z
 
 # Spatial covariance
