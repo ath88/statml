@@ -319,3 +319,4 @@ for i in range(0,im2.size[0]): # width of image
 		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
 
 im2.save('new_kande2.jpg')
+
