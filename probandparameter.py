@@ -103,15 +103,18 @@ title("x2 values")
 #bar(xlocations2+0.2,histo2[0])
 
 # Question 1.6
-#figure()
-#title('Histogram estimate of p(x1)')
+figure()
+title('Histogram estimate of p(x1)')
+
 # Plot the histogram estimate
 hist1 = histogram(x1s, density=False)
 xlocs = array(range(len(hist1[0])))+0.1
-# Plot the analytical solution
-norm_xlocs = linspace(-2,12,200)
-plot(norm_xlocs, normpdf(norm_xlocs, 5+0.3, math.sqrt(6)))
-bar(xlocs, hist1[0]/100)
+
+# Plot the analytical solution, u=1, var=0.3
+#norm_xlocs = linspace(-2,12,200)
+# Correcting analytical solution because of bin width
+#plot(norm_xlocs, normpdf(norm_xlocs, 1, math.sqrt(0.3)))
+#bar(xlocs, hist1[0]/100)
 xlim(xlocs[0]-2, xlocs[-1]+2)
 ylim(0,1)
 #show()
@@ -167,11 +170,12 @@ def ptransform(y,lda):
 def generateValues (lda, L, count):
 	mu_y = 1/lda
 	mu_est = 0
-	for i in range(1,count):
+	for i in range(count):
 		y = np.random.uniform(0,1,L)
 		tmpySum = 0
-		for i in range(1,L):
-			tmpySum += y[i-1]**i
+		for j in range(1,L):
+			tmpySum += y[j-1]**j
+			#print tmpySum
 		tmpySum /= L
 		mu_est += abs(mu_y - tmpySum)
 	mu_est /= count
@@ -181,17 +185,17 @@ def generateValues (lda, L, count):
 l = 10
 
 # We now plot the expected absolute deviation
-lvalues = range(1,500,5)
+lvalues = range(1,100,5)
 abs_deviations = [generateValues(l, i, 10) for i in lvalues]
 
 # Plotting the absolute deviation
-fig1 = figure()
+figure()
 ax = gca()
 title('Expected absolute deviation')
 ax.xaxis.set_visible(True)
 ylabel('y')
 xlabel('x')
-xlim(6,500)
+#xlim(6,500)
 ylim(0,0.25)
 grid(True)
 plot(lvalues, abs_deviations)
@@ -226,11 +230,18 @@ def multi_norm (x, sigma, mu):
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
 	meanColour = multi_norm(mu, sigma, mu)
-	if mnorm > meanColour/1.07:
+	#if mnorm > meanColour/1.09:
+	if mnorm == meanColour:
 		return (255,255,255) # white
-	elif mnorm > meanColour/1.1:
+	elif mnorm > meanColour/1.05:
 		return (192,192,192)
+	elif mnorm > meanColour/1.1:
+		return (152,152,152)
+	elif mnorm > meanColour/1.15:
+		return (112,112,112)
 	elif mnorm > meanColour/1.2:
+		return (112,112,112)
+	elif mnorm > meanColour/1.25:
 		return (112,112,112)
 	return (0,0,0) # black
 
@@ -266,10 +277,8 @@ cov /= len(r)
 im = Image.open("kande1.jpg")
 pixs = im.load()
 
-# UNCOMMENT THE FOLLOWING TO SEE THE NEW IMAGE
-
 # Generate new image
-for i in range(0,im.size[0]): # width of image
+for i in range(0,im.size[0]): 	  # width of image
 	for j in range(0,im.size[1]): #height of image
 		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
 im.save('new_kande1.jpg')
@@ -277,19 +286,19 @@ im.save('new_kande1.jpg')
 # Question 1.10
 
 # Weighted average position
-qhat = [0,0]
+qhat = np.array([0,0])
 Z = 0
 for i in range(0,im.size[0]): 	  # width of image
 	for j in range(0,im.size[1]): # height of image
 		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
 		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
 		Z += norm_const
-		qhat += list(map(lambda x: x*norm_const, np.array([i,j])))
+		qhat += np.array([i,j], dtype=float64)*norm_const
 qhat /= Z
 
 # Spatial covariance
 C = 0
-for i in range(0,im.size[0]): # width of image
+for i in range(0,im.size[0]): 	  # width of image
 	for j in range(0,im.size[1]): #height of image
 		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
 		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]

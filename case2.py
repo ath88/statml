@@ -56,7 +56,21 @@ testSet_sel2 = np.matrix(testSet_asCols[7])
 #linmod1 = y(testSet_sel1, w_ml_sel1)  # Wrong?
 #linmod2 = y(testSet_sel2, w_ml_sel2)
 
+def rms (t,x,w):
+	N = len(x)
+	result = 0
+	for i in range(N):
+		result += (t[i] - y(x[i],w))**2
+	return math.sqrt(result/N)
+
+#rms_sel1 = rms(t, testSet_sel1, w_ml_sel1)
+#rms_sel2 = rms(t, testSet_sel2, w_ml_sel2)
+
 ## II.1.2 Maximum a posteriori solution
 
 ## II.2.1 Linear discriminant analysis
+
+
+
+
 
