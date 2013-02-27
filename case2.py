@@ -86,7 +86,7 @@ def rms (t,x,w):
 #rms_sel1 = math.sqrt(rms_sel1/len(t_test))
 
 rms_sel1 = rms(t_test, x_testSet_sel1, w_ml_sel1)
-print "RMS for ML 1:  ", rms_sel1
+#print "RMS for ML 1:  ", rms_sel1
 
 # RMS for selection 2
 #rms_sel2 = 0
@@ -97,7 +97,7 @@ print "RMS for ML 1:  ", rms_sel1
 #rms_sel2 = math.sqrt(rms_sel2/len(t_test))
 
 rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
-print "RMS for ML 2:  ", rms_sel2
+#print "RMS for ML 2:  ", rms_sel2
 
 ## II.1.2 Maximum a posteriori solution
 ## Estimate m_N and S_N (training)
@@ -116,8 +116,8 @@ m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
 
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
+#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
 ## alpha = 1
 alpha = 1
@@ -131,8 +131,8 @@ m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
 
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
+#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
 ## alpha = 10
 alpha = 10
@@ -145,8 +145,8 @@ m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
 
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
+#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
 ## alpha = 1000
 alpha = 1000
@@ -159,8 +159,8 @@ m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
 
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
+#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
 ## II.2.1 Linear discriminant analysis
 
@@ -168,6 +168,10 @@ rawTrainingData = np.loadtxt('Iris/irisTrain.dt').T
 length = rawTrainingData[0]
 width = rawTrainingData[1]
 classes = rawTrainingData[2]
+inData = zip(length,width,classes)
+
+#print width
+#print inData
 
 # Scatter plot
 figure()
@@ -178,4 +182,22 @@ scatter(length,width,c=classes)
 show()
 
 # LDA
+
+## II.2.2 Nearest neighbour with Euclidean metric
+def dist(x,y):   
+	return numpy.sqrt(numpy.sum((x[:2]-y[:2])**2))
+
+def knn (neighbours, S, pnt):
+	S_star = []
+	while len(S_star) < neighbours:
+		# Find neighbour
+		closest = (float("inf"), float("inf"), float("inf"))
+		for i in S:
+			if dist(pnt, i) < closest:
+				closest = i
+		S_star.append(closest)
+		S.remove(closest)
+	## DECIDE WHICH ONE TO CHOOSE HERE
+	return closest
+
 
