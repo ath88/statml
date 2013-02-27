@@ -22,7 +22,8 @@ division = math.ceil(len(np.matrix(rawData))*0.8)
 trainingSet = np.random.permutation(rawData)[:division]
 testSet 	= np.random.permutation(rawData)[division:]
 
-t = np.matrix([row[1] for row in trainingSet]).T
+t_train = np.matrix([row[1] for row in trainingSet]).T
+t_test  = np.matrix([row[1] for row in testSet]).T
 
 ## II.1.1 Maximum likelihood solution
 
@@ -41,36 +42,51 @@ def y(x,w):
 design1 = np.matrix([[row[3], row[6], row[7], row[8]] for row in trainingSet])
 # Selection 2 (column 8 transposed)
 design2 = np.matrix(trainingSet.T[7]).T
-print design2
+#print design2
 
 # Compute ML estimate (training)
-w_ml_sel1 = np.linalg.pinv(design1)*t # Contains 4 ML estimates
-w_ml_sel2 = np.linalg.pinv(design2)*t # Contains a single ML estimate
+w_ml_sel1 = np.linalg.pinv(design1)*t_train
+w_ml_sel2 = np.linalg.pinv(design2)*t_train
 
-# Extract the right test set data for each ML estimate
+# Extract the right test set data for each ML estimate (x)
 testSet_asCols = testSet.T
-testSet_sel1 = np.matrix([testSet_asCols[3] ,testSet_asCols[6], testSet_asCols[7], testSet_asCols[8]])
-testSet_sel2 = np.matrix(testSet_asCols[7])
+x_testSet_sel1 = np.matrix([testSet_asCols[3] ,testSet_asCols[6], testSet_asCols[7], testSet_asCols[8]])
+x_testSet_sel2 = np.matrix(testSet_asCols[7])
 
-# Apply each model to the test set 
-#linmod1 = y(testSet_sel1, w_ml_sel1)  # Wrong?
-#linmod2 = y(testSet_sel2, w_ml_sel2)
+# Root Mean Square
 
 def rms (t,x,w):
-	N = len(x)
+	N = len(t)
 	result = 0
 	for i in range(N):
-		result += (t[i] - y(x[i],w))**2
+		tn = t[i][0,0]
+		y  = x.T[i] * w
+		result += (tn - y)**2
 	return math.sqrt(result/N)
 
-#rms_sel1 = rms(t, testSet_sel1, w_ml_sel1)
-#rms_sel2 = rms(t, testSet_sel2, w_ml_sel2)
+# RMS sel2
+#rms_sel2 = 0
+#for i in range(len(t_test)):
+#	tn = t_test[i][0,0]
+#	y  = x_testSet_sel2.T[i] * w_ml_sel2[0,0]
+#	rms_sel2 += (tn - y)**2
+#rms_sel2 = math.sqrt(rms_sel2/len(t_test))
+
+rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
+print rms_sel2
+
+# RMS sel1
+#rms_sel1 = 0
+#for i in range(len(t_test)):
+#	tn = t_test[i][0,0]
+#	y  = x_testSet_sel1.T[i] * w_ml_sel1
+#	rms_sel1 += (tn - y)**2
+#rms_sel1 = math.sqrt(rms_sel1/len(t_test))
+
+rms_sel1 = rms(t_test, x_testSet_sel1, w_ml_sel1)
+print rms_sel1
 
 ## II.1.2 Maximum a posteriori solution
 
 ## II.2.1 Linear discriminant analysis
-
-
-
-
 
