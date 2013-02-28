@@ -163,24 +163,17 @@ title("Histogram, 20 bins, 100 samples")
 #ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
 #show()
+def average(y):
+	return sum(y)/len(y)
 
 # Question 1.8
-def ptransform(y,lda):
-	if y < 0:
-		raise Exception("y must be non-negative.")
-	return lda*exp(-lda*y)
-
 def generateValues (lda, L, count):
 	mu_y = 1/lda
 	mu_est = 0
 	for i in range(count):
-		y = np.random.uniform(0,1,L)
-		tmpySum = 0
-		for j in range(1,L):
-			tmpySum += y[j-1]**j
-			#print tmpySum
-		tmpySum /= L
-		mu_est += abs(mu_y - tmpySum)
+		randomYs = np.random.uniform(0,1,L)
+		y = map(lambda x: -mu_y*math.log(1-x),randomYs)
+		mu_est += abs(mu_y - average(y))
 	mu_est /= count
 	return mu_est
 
@@ -188,7 +181,8 @@ def generateValues (lda, L, count):
 l = 10
 
 # We now plot the expected absolute deviation
-lvalues = range(1,100,5)
+lvalues = range(1,10,1)
+lvalues = [10**i for i in lvalues]
 abs_deviations = [generateValues(l, i, 10) for i in lvalues]
 
 # Plotting the absolute deviation
@@ -198,8 +192,7 @@ title('Expected absolute deviation')
 ax.xaxis.set_visible(True)
 ylabel('y')
 xlabel('x')
-#xlim(6,500)
-ylim(0,0.25)
+ylim(0,0.04)
 grid(True)
 plot(lvalues, abs_deviations)
 #show()

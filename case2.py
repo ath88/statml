@@ -168,7 +168,7 @@ rawTrainingData = np.loadtxt('Iris/irisTrain.dt').T
 length = rawTrainingData[0]
 width = rawTrainingData[1]
 classes = rawTrainingData[2]
-inData = zip(length,width,classes)
+inData = list(map(list,zip(length,width,classes)))
 
 #print width
 #print inData
@@ -184,20 +184,50 @@ show()
 # LDA
 
 ## II.2.2 Nearest neighbour with Euclidean metric
-def dist(x,y):   
-	return numpy.sqrt(numpy.sum((x[:2]-y[:2])**2))
 
-def knn (neighbours, S, pnt):
+def dist(x,y,M):
+ 	# Euclidean metric if M = identity matrix
+	xm = x*M
+	ym = y*M
+	return np.sqrt(np.sum((np.array(xm-ym))**2))
+
+def closestClass (S_star, k):
+	classes = [c for [x,y,c] in S_star]
+	maxCount = float("-inf")
+	for i in np.random.permutation(classes):
+		if maxCount < classes.count(i):
+			maxCount = i
+	return maxCount
+
+def knn (k, S, pnt, M):
+	pnt = np.array(pnt)
 	S_star = []
-	while len(S_star) < neighbours:
-		# Find neighbour
-		closest = (float("inf"), float("inf"), float("inf"))
-		for i in S:
-			if dist(pnt, i) < closest:
+	while len(S_star) < k:
+		closest = S[0]
+		for i in S[1:]:
+			if dist(pnt, i[:2], M) < dist(pnt, closest[:2], M):
 				closest = i
 		S_star.append(closest)
 		S.remove(closest)
-	## DECIDE WHICH ONE TO CHOOSE HERE
-	return closest
+	# Decide which class is argmax
+	return closestClass(S_star,k)
+
+M = np.matrix([[1,0],[0,10]])
+
+#kek = knn(4, testData0, (0,0))
+#kek = knn(3, testData, (3,4))
+
+kek = knn (1, inData, (6,0.3), M)
+print kek
+kek = knn (3, inData, (6,0.3), M)
+print kek
+kek = knn (5, inData, (6,0.3), M)
+print kek
+kek = knn (7, inData, (6,0.3), M)
+
+print kek
+
+
+
 
 
