@@ -108,24 +108,26 @@ figure()
 title('Histogram estimate of p(x1)')
 
 # Plot the histogram estimate
-hist1 = histogram(x1s, density=False)
-xlocs = array(range(len(hist1[0])))+0.1
+hist1 = histogram(x1s)
+xlocs = array(range(len(hist1[0])))
 
 # Plot the analytical solution, u=1, var=0.3
-#norm_xlocs = linspace(-2,12,200)
+norm_xlocs = linspace(-0.5,2.5,200)
+
 # Correcting analytical solution because of bin width
-#plot(norm_xlocs, normpdf(norm_xlocs, 1, math.sqrt(0.3)))
-#bar(xlocs, hist1[0]/100)
-xlim(xlocs[0]-2, xlocs[-1]+2)
-ylim(0,1)
+bar(hist1[1][:-1], hist1[0]/100,np.diff(hist1[1]))
+plot(norm_xlocs, normpdf(norm_xlocs, 1, 0.3)/10.0, color="red")
+
+#xlim(xlocs[0]-2, xlocs[-1]+2)
+#ylim(0,1)
 #show()
-#figure()
+figure()
 
 #bar(xlocs, hist1[0])
 #prange = np.arange(0, 10, 0.001)
-#plot(prange, normpdf(prange, 5, math.sqrt(0.3)))
+#plot(prange, normpdf(prange, 5, (0.3))/20)
 #show()
-
+#
 # Question 1.7
 N = 100
 bins = 20
