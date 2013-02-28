@@ -163,7 +163,6 @@ ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 show()
 
 # Question 1.8
-print "Calculating 1.8, this will take awhile"
 def average(y):
 	return sum(y)/len(y)
 
@@ -181,7 +180,7 @@ def generateValues (lda, L, count):
 l = 10
 
 # We now plot the expected absolute deviation
-lvalues = range(1,8,1)
+lvalues = range(1,5,1)
 lvalues = [10**i for i in lvalues]
 abs_deviations = [generateValues(l, i, 10) for i in lvalues]
 
