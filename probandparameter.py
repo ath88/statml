@@ -117,11 +117,11 @@ hist1 = histogram(x1s)
 xlocs = array(range(len(hist1[0])))
 
 # Plot the analytical solution, u=1, var=0.3
-norm_xlocs = linspace(-0.5,2.5,200)
+norm_xlocs = linspace(-0.5,2.5,300)
 
 # Correcting analytical solution because of bin width
-bar(hist1[1][:-1], hist1[0]/100,np.diff(hist1[1]))
-plot(norm_xlocs, normpdf(norm_xlocs, 1, 0.3)/10.0, color="red")
+bar(hist1[1][:-1], hist1[0],np.diff(hist1[1]))
+plot(norm_xlocs, normpdf(norm_xlocs, 1, 0.3)*10.0, color="red")
 
 #xlim(xlocs[0]-2, xlocs[-1]+2)
 #ylim(0,1)
@@ -163,6 +163,7 @@ ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 show()
 
 # Question 1.8
+print "Calculating 1.8, this will take awhile"
 def average(y):
 	return sum(y)/len(y)
 
@@ -180,7 +181,7 @@ def generateValues (lda, L, count):
 l = 10
 
 # We now plot the expected absolute deviation
-lvalues = range(1,10,1)
+lvalues = range(1,8,1)
 lvalues = [10**i for i in lvalues]
 abs_deviations = [generateValues(l, i, 10) for i in lvalues]
 
@@ -208,7 +209,7 @@ ax.set_xscale('log')
 ylabel('y')
 xlabel('x')
 plot(lvalues, abs_deviations)
-#show()
+show()
 #fig2.savefig('q18_2.jpg')
 
 # Question 1.9
@@ -284,6 +285,8 @@ img = misc.imread("kande1.jpg")
 # coloring of picture is included in 1.10
 
 # Question 1.10
+print "Working on 1.10, this will take awhile"
+
 qhat = np.array([0,0])
 C = matrix(zeros((2,2)))
 Z = 0
@@ -322,11 +325,13 @@ x = range(0,640)
 y = range(0,480)
 contour(y,x,contours,colors='#00ff00')
 title("Attempt at detecting the pitcher in kande1.jpg")
+show()
 
-# clear cache
+# clear cache for contours
 cache = {}
 
 # Question 1.11
+print "Working on 1.11, this will take awhile"
 
 figure()
 img = misc.imread("kande2.jpg")
