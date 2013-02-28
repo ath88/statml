@@ -180,7 +180,7 @@ def generateValues (lda, L, count):
 l = 10
 
 # We now plot the expected absolute deviation
-lvalues = range(1,10,1)
+lvalues = range(1,5,1)
 lvalues = [10**i for i in lvalues]
 abs_deviations = [generateValues(l, i, 10) for i in lvalues]
 
