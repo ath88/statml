@@ -10,6 +10,7 @@ from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
 from PIL import Image
+from scipy import misc
 
 # Question 1.1
 
@@ -199,7 +200,7 @@ xlabel('x')
 ylim(0,0.25)
 grid(True)
 plot(lvalues, abs_deviations)
-show()
+#show()
 #fig1.savefig('q18_1.jpg')
 
 # Plotting a transformed value
@@ -213,37 +214,48 @@ ax.set_xscale('log')
 ylabel('y')
 xlabel('x')
 plot(lvalues, abs_deviations)
-show()
+#show()
 #fig2.savefig('q18_2.jpg')
 
 # Question 1.9
 
 # Helper function
+global cache
+cache = {} 
+
 def multi_norm (x, sigma, mu):
-	const = 1.0/(((2*np.pi)**(len(mu.T)/2))*np.sqrt(np.linalg.det(sigma)))
-	part1 = 1/((2*np.pi)**(len(mu)/2))
-	part2 = 1/(np.linalg.det(sigma)**0.5)
+        key = tuple(x.tolist()[0])
+        try:
+            return cache[key]
+        except:
+            pass
+	const = pow((2*np.pi), (len(mu.T)/2)) * pow(np.linalg.det(sigma), 0.5)
 	x_mu = np.matrix((x-mu)).T
 	precision = np.matrix(sigma).I
-	return const*np.exp(-0.5*dot(x_mu.T, dot(precision, x_mu)))
+        exp = -0.5*dot(x_mu.T, dot(precision, x_mu))
+	cache[key] = (np.exp(exp)/const).tolist()[0][0]
+        return cache[key]
 
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
-	meanColour = multi_norm(mu, sigma, mu)
-	#if mnorm > meanColour/1.09:
-	if mnorm == meanColour:
-		return (255,255,255) # white
-	elif mnorm > meanColour/1.05:
-		return (192,192,192)
-	elif mnorm > meanColour/1.1:
-		return (152,152,152)
-	elif mnorm > meanColour/1.15:
-		return (112,112,112)
-	elif mnorm > meanColour/1.2:
-		return (112,112,112)
-	elif mnorm > meanColour/1.25:
-		return (112,112,112)
-	return (0,0,0) # black
+	meanColor = multi_norm(mu, sigma, mu)
+        return thermcolor(mnorm,meanColor)
+
+def thermcolor(value,maxvalue):
+        ratio = value/maxvalue
+        scale = ratio * 5 * 255
+        if scale <= 255:
+            return [0,0,scale]
+        elif scale > 255 and scale <= 255*2:
+            return [scale - 255, 0, 255]
+        elif scale > 255*2 and scale <= 255*3:
+            return [255, 0, 255 - (scale - 255*2)]
+        elif scale > 255*3 and scale <= 255*4:
+            return [255, scale - 255*3, 0]
+        elif scale > 255*4:
+            return [255, 255, scale - 255*4]
+        return [0,0,0]
+
 
 # Process training set
 im = Image.open("kande1.jpg").crop((150,264,330,328))
@@ -251,12 +263,11 @@ im = Image.open("kande1.jpg").crop((150,264,330,328))
 r = []
 g = []
 b = []
-length = 0
 for a in im.getcolors(10000000): 
-	occ = a[0]
-	r.append(a[1][0]*occ)
-	g.append(a[1][1]*occ)
-	b.append(a[1][2]*occ)
+    for i in range(0,a[0]):
+	r.append(a[1][0])
+	g.append(a[1][1])
+	b.append(a[1][2])
 
 # Maximum likelihood estimate for sample mean
 mean = []
@@ -273,50 +284,93 @@ for i in range(0,len(r)):
 	cov += dot(sub.transpose(),sub)
 cov /= len(r)
 
-# Process all pixels
-im = Image.open("kande1.jpg")
-pixs = im.load()
-
-# Generate new image
-for i in range(0,im.size[0]): 	  # width of image
-	for j in range(0,im.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-im.save('new_kande1.jpg')
+figure()
+img = misc.imread("kande1.jpg")
 
 # Question 1.10
-
-# Weighted average position
 qhat = np.array([0,0])
+C = matrix(zeros((2,2)))
 Z = 0
-for i in range(0,im.size[0]): 	  # width of image
-	for j in range(0,im.size[1]): # height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
+
 		Z += norm_const
-		qhat += np.array([i,j], dtype=float64)*norm_const
+                 
+                #Weighted Average
+		qhat = qhat + dot(np.array([i,j]),norm_const)
+
+
 qhat /= Z
 
-# Spatial covariance
-C = 0
-for i in range(0,im.size[0]): 	  # width of image
-	for j in range(0,im.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
-		qdiff = np.array([i,j]) - qhat
-		C += np.dot(qdiff, qdiff.T)*norm_const
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
+		#Spatial Covarianec
+		qdiff = np.matrix([i,j]) - np.matrix(qhat)
+		C = C + np.dot(qdiff.T, qdiff) * norm_const
+
+                #redrawing according to covariance
+		img[i,j] = reDraw(matrix(img[i,j]), cov, mean)
 C /= Z
 
-# Plot q hat and contours of C on top of our image
+imshow(img)
+scatter(qhat[1],qhat[0],color='green',s=100)
+
+contours = zeros((img.shape[0],img.shape[1]))
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+                contours[i][j] = multi_norm(matrix([i,j]),C,qhat)
+
+x = range(0,640)
+y = range(0,480)
+contour(y,x,contours,colors='#00ff00')
+title("Attempt at detecting the pitcher in kande1.jpg")
+
+# clear cache
+cache = {}
 
 # Question 1.11
 
-im2 = Image.open("kande2.jpg")
-pixs = im2.load()
+figure()
+img = misc.imread("kande2.jpg")
 
-# Generate new image for the second pitcher
-for i in range(0,im2.size[0]): # width of image
-	for j in range(0,im2.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+qhat = np.array([0,0])
+C = matrix(zeros((2,2)))
+Z = 0
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
 
-im2.save('new_kande2.jpg')
+		Z += norm_const
+                 
+                #Weighted Average
+		qhat = qhat + dot(np.array([i,j]),norm_const)
 
+qhat /= Z
+
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
+		#Spatial Covarianec
+		qdiff = np.matrix([i,j]) - np.matrix(qhat)
+		C = C + np.dot(qdiff.T, qdiff) * norm_const
+
+                #redrawing according to covariance
+		img[i,j] = reDraw(matrix(img[i,j]), cov, mean)
+C /= Z
+
+imshow(img)
+scatter(qhat[1],qhat[0],color='green',s=100)
+
+contours = zeros((img.shape[0],img.shape[1]))
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+                contours[i][j] = multi_norm(matrix([i,j]),C,qhat,)
+
+x = range(0,640)
+y = range(0,480)
+title("Attempt at detecting the pitcher in kande2.jpg")
+contour(y,x,contours,colors='#00ff00')
+
+show()
