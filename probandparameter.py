@@ -14,7 +14,8 @@ from scipy import misc
 
 # Question 1.1
 
-title("3 Gaussian distribution functions with different mean and standard deviation")
+figure()
+
 ylabel('y')
 xlabel('x')
 axis([-7,9,0,0.5])
@@ -25,17 +26,19 @@ x = linspace(-6,8,200)
 mean = -1
 variance = 1
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
 
 mean = 0
 variance = 2
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
 
 mean = 2
 variance = 3
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
+
+show()
 
 # Question 1.2
 
@@ -74,10 +77,11 @@ for i in ySamples:
 sampleVar = sampleVar/observations
 
 # Plot sample mean, mean and data points
-title('Maximum likelihood sample mean')
-#scatter(x1s, x2s)
-#scatter(means[0], means[1], color="red")
-#scatter(sampleMeans[0], sampleMeans[1], color="green")
+figure()
+scatter(x1s, x2s)
+scatter(means[0], means[1], color="red")
+scatter(sampleMeans[0], sampleMeans[1], color="green")
+show()
 
 # The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
@@ -87,21 +91,22 @@ diff_in_mean = abs(sampleMeans - means)
 # Complete, 8 bins seems to be the best
 bins = 8
 
-#figure()
+figure()
 histo1 = histogram(x1s,bins)
 xlocations1 = array(range(len(histo1[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x1 values")
-#bar(xlocations1,histo1[0])
+bar(xlocations1,histo1[0])
 
-#figure()
+figure()
 histo2 = histogram(x2s,bins)
 xlocations2 = array(range(len(histo2[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x2 values")
-#bar(xlocations2+0.2,histo2[0])
+bar(xlocations2+0.2,histo2[0])
+show()
 
 # Question 1.6
 figure()
@@ -120,14 +125,8 @@ plot(norm_xlocs, normpdf(norm_xlocs, 1, 0.3)/10.0, color="red")
 
 #xlim(xlocs[0]-2, xlocs[-1]+2)
 #ylim(0,1)
-#show()
-figure()
+show()
 
-#bar(xlocs, hist1[0])
-#prange = np.arange(0, 10, 0.001)
-#plot(prange, normpdf(prange, 5, (0.3))/20)
-#show()
-#
 # Question 1.7
 N = 100
 bins = 20
@@ -155,18 +154,18 @@ dx = 0.12 * ones_like(zpos)
 dy = dx.copy()
 dz = hist.flatten()
 
-title("Histogram, 20 bins, 100 samples")
+fig = figure()
 
 #draw graph
-#fig = figure()
-#ax = fig.add_subplot(111, projection='3d')
-#ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
+ax = fig.add_subplot(111, projection='3d')
+ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
-#show()
+show()
+
+# Question 1.8
 def average(y):
 	return sum(y)/len(y)
 
-# Question 1.8
 def generateValues (lda, L, count):
 	mu_y = 1/lda
 	mu_est = 0
@@ -281,6 +280,8 @@ cov /= len(r)
 
 figure()
 img = misc.imread("kande1.jpg")
+
+# coloring of picture is included in 1.10
 
 # Question 1.10
 qhat = np.array([0,0])
