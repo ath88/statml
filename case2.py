@@ -51,53 +51,53 @@ def y(x,w):
 		result += np.dot(w[i+1], x[i])
 	return result
 
+def dims(x):
+	return "Dimensions", len(x), "x", len(x.T)
+
 # Construct design matrices
-# Selection 1 (columns 4, 7, 8, 9) arranged as rows
 design1 = np.matrix([[row[3], row[6], row[7], row[8]] for row in trainingSet]).T
-# Selection 2 (column 8 transposed)
 design2 = np.matrix(trainingSet.T[7])
 
-# Compute ML estimate (training)
+# Add padding
+padding = np.ones((division,1))
+design1 = np.reshape(np.append(padding, design1), (5,202)).T
+design2 = np.reshape(np.append(padding, design2), (2,202)).T
 
-w_ml_sel1 = np.linalg.pinv(design1).T*t_train # Why are we transposin'?
-w_ml_sel2 = np.linalg.pinv(design2).T*t_train
+# Compute ML estimate (training)
+w_ml_sel1 = np.linalg.pinv(design1)*t_train
+w_ml_sel2 = np.linalg.pinv(design2)*t_train
 #print "w_ml_sel1:", w_ml_sel1, "\n"
 #print "w_ml_sel2:", w_ml_sel2, "\n"
+
+# Convert from matrix to array type
+w_ml_sel1 = np.squeeze(np.asarray(w_ml_sel1))
+w_ml_sel2 = np.squeeze(np.asarray(w_ml_sel2))
 
 # Extract the right test set data for each ML estimate (x'es)
 testSet_asCols = testSet.T
 x_testSet_sel1 = np.matrix([testSet_asCols[3] ,testSet_asCols[6], testSet_asCols[7], testSet_asCols[8]])
 x_testSet_sel2 = np.matrix(testSet_asCols[7])
 
+# Add a [1..1] column to the test set
+x_testSet_sel1 = np.reshape(np.append(padding, x_testSet_sel1), (5,202)).T
+x_testSet_sel2 = np.reshape(np.append(padding, x_testSet_sel2), (2,202)).T
+
 # Root Mean Square
 def rms (t,x,w):
 	N = len(t)
 	result = 0
+	#print dims(t)
 	for i in range(N):
 		tn = t[i][0,0]
-		y  = x.T[i] * w
-		result += (tn - y[0,0])**2
+		y = np.dot(w, x[i])
+		result += (tn - y)**2
 	return math.sqrt(result/N)
 
-#for i in range(len(t_test)):
-#	tn = t_test[i][0,0]
-#	y  = x_testSet_sel1.T[i] * w_ml_sel1
-#	rms_sel1 += (tn - y)**2
-#rms_sel1 = math.sqrt(rms_sel1/len(t_test))
-
 rms_sel1 = rms(t_test, x_testSet_sel1, w_ml_sel1)
-#print "RMS for ML 1:  ", rms_sel1
-
-# RMS for selection 2
-#rms_sel2 = 0
-#for i in range(len(t_test)):
-#	tn = t_test[i][0,0]
-#	y  = x_testSet_sel2.T[i] * w_ml_sel2[0,0]
-#	rms_sel2 += (tn - y)**2
-#rms_sel2 = math.sqrt(rms_sel2/len(t_test))
+print "RMS for ML 1:  ", rms_sel1
 
 rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
-#print "RMS for ML 2:  ", rms_sel2
+print "RMS for ML 2:  ", rms_sel2
 
 ## II.1.2 Maximum a posteriori solution
 ## Estimate m_N and S_N (training)
@@ -107,14 +107,18 @@ beta  = 1
 ## alpha = 0.001
 alpha = 0.001
 # For selection 1
-S_N_1 = alpha*np.identity(4)+beta*design1*design1.T
-m_N_1 = beta*np.linalg.inv(S_N_1)*design1*t_train # MAP estimate
+#S_N_1 = alpha*np.identity(4)+beta*design1*design1.T
+#m_N_1 = beta*np.linalg.inv(S_N_1)*design1*t_train # MAP estimate
 
 # For selection 2
-S_N_2 = alpha+beta*design2*design2.T
-m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
+#S_N_2 = alpha+beta*design2*design2.T
+#m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
+#S_N_2 = alpha*np.identity(2) + beta * np.dot(design2.T, design2)
+#print "S N 2: ", S_N_2
+#m_N_2 = beta* np.dot(np.linalg.inv(S_N_2), design2.T)*t_train
+#print "m N 2: ", m_N_2
 
-rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
+#rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
 #print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
 #print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
@@ -174,12 +178,12 @@ inData = list(map(list,zip(length,width,classes)))
 #print inData
 
 # Scatter plot
-figure()
-title('Scatter plot of training data.')
-xlabel('Length')
-ylabel('Width')
-scatter(length,width,c=classes)
-show()
+#figure()
+#title('Scatter plot of training data.')
+#xlabel('Length')
+#ylabel('Width')
+#scatter(length,width,c=classes)
+#show()
 
 # LDA
 
@@ -218,14 +222,13 @@ M = np.matrix([[1,0],[0,10]])
 #kek = knn(3, testData, (3,4))
 
 kek = knn (1, inData, (6,0.3), M)
-print kek
+#print kek
 kek = knn (3, inData, (6,0.3), M)
-print kek
+#print kek
 kek = knn (5, inData, (6,0.3), M)
-print kek
+#print kek
 kek = knn (7, inData, (6,0.3), M)
-
-print kek
+#print kek
 
 
 
