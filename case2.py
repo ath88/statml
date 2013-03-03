@@ -52,7 +52,7 @@ def y(x,w):
 	return result
 
 def dims(x):
-	return "Dimensions", len(x), "x", len(x.T)
+	print "Dimensions", len(x), "x", len(x.T)
 
 # Construct design matrices
 design1 = np.matrix([[row[3], row[6], row[7], row[8]] for row in trainingSet]).T
@@ -94,77 +94,40 @@ def rms (t,x,w):
 	return math.sqrt(result/N)
 
 rms_sel1 = rms(t_test, x_testSet_sel1, w_ml_sel1)
-print "RMS for ML 1:  ", rms_sel1
-
 rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
+
+print "RMS for ML 1:  ", rms_sel1
 print "RMS for ML 2:  ", rms_sel2
 
 ## II.1.2 Maximum a posteriori solution
+
 ## Estimate m_N and S_N (training)
+beta  = 1 # fixed throughout assignment
 
-beta  = 1
+# BEGIN WORKING
 
-## alpha = 0.001
-alpha = 0.001
-# For selection 1
-#S_N_1 = alpha*np.identity(4)+beta*design1*design1.T
-#m_N_1 = beta*np.linalg.inv(S_N_1)*design1*t_train # MAP estimate
-
-# For selection 2
-#S_N_2 = alpha+beta*design2*design2.T
-#m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
-#S_N_2 = alpha*np.identity(2) + beta * np.dot(design2.T, design2)
-#print "S N 2: ", S_N_2
-#m_N_2 = beta* np.dot(np.linalg.inv(S_N_2), design2.T)*t_train
-#print "m N 2: ", m_N_2
-
-#rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
-rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
-
-## alpha = 1
+## MAP for alpha = 1
 alpha = 1
 # For selection 1
-S_N_1 = alpha*np.identity(4)+beta*design1*design1.T
-m_N_1 = beta*np.linalg.inv(S_N_1)*design1*t_train # MAP estimate
+S_N_1 = alpha*np.identity(5)+beta*np.dot(design1.T,design1)
+m_N_1 = beta*np.dot(np.linalg.inv(S_N_1), design1.T)*t_train # MAP estimate
 
 # For selection 2
-S_N_2 = alpha+beta*design2*design2.T
-m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
+S_N_2 = alpha*np.identity(2)+beta*np.dot(design2.T,design2)
+m_N_2 = beta*np.dot(np.linalg.inv(S_N_2), design2.T)*t_train # MAP estimate
+
+# Convert from matrix to array type
+m_N_1 = np.squeeze(np.asarray(m_N_1))
+m_N_2 = np.squeeze(np.asarray(m_N_2))
 
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
-## alpha = 10
-alpha = 10
-# For selection 1
-S_N_1 = alpha*np.identity(4)+beta*design1*design1.T
-m_N_1 = beta*np.linalg.inv(S_N_1)*design1*t_train # MAP estimate
-# For selection 2
-S_N_2 = alpha+beta*design2*design2.T
-m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
+print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
+print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
-rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
-rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+# END WORKING
 
-## alpha = 1000
-alpha = 1000
-# For selection 1
-S_N_1 = alpha*np.identity(4)+beta*design1*design1.T
-m_N_1 = beta*np.linalg.inv(S_N_1)*design1*t_train # MAP estimate
-# For selection 2
-S_N_2 = alpha+beta*design2*design2.T
-m_N_2 = beta*np.linalg.inv(S_N_2)*design2*t_train # MAP estimate
-
-rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
-rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
-#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
 ## II.2.1 Linear discriminant analysis
 
