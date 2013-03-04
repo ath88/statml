@@ -148,7 +148,20 @@ inData = list(map(list,zip(length,width,classes)))
 #scatter(length,width,c=classes)
 #show()
 
-# LDA
+## Linear Discriminant Analysis
+no_classes = 3
+
+## Compute mean estimates for each class
+# Get x values (in this case length of the sepals)
+c0s = [i[0] for i in inData if i[2] == 0.0]
+c1s = [i[0] for i in inData if i[2] == 1.0]
+c2s = [i[0] for i in inData if i[2] == 2.0]
+
+mean_est_c0 = sum(c0s)/len(c0s)
+mean_est_c1 = sum(c1s)/len(c1s)
+mean_est_c2 = sum(c2s)/len(c2s)
+
+## Compute common covariance matrix
 
 ## II.2.2 Nearest neighbour with Euclidean metric
 
@@ -178,7 +191,6 @@ def knn (k, S, pnt, M):
 		S.remove(closest)
 	# Decide which class is argmax
 	return closestClass(S_star,k)
-
 M = np.matrix([[1,0],[0,10]])
 
 #kek = knn(4, testData0, (0,0))
