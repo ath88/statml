@@ -96,8 +96,8 @@ def rms (t,x,w):
 rms_sel1 = rms(t_test, x_testSet_sel1, w_ml_sel1)
 rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
 
-print "RMS for ML 1:  ", rms_sel1
-print "RMS for ML 2:  ", rms_sel2
+#print "RMS for ML 1:  ", rms_sel1
+#print "RMS for ML 2:  ", rms_sel2
 
 ## II.1.2 Maximum a posteriori solution
 
@@ -123,8 +123,8 @@ m_N_2 = np.squeeze(np.asarray(m_N_2))
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
 
-print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
+#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
 
 # END WORKING
 
@@ -149,26 +149,68 @@ inData = list(map(list,zip(length,width,classes)))
 #show()
 
 ## Linear Discriminant Analysis
-no_classes = 3
 
-## Compute mean estimates for each class
-# Get x values (in this case length of the sepals)
-c0s = [i[0] for i in inData if i[2] == 0.0]
-c1s = [i[0] for i in inData if i[2] == 1.0]
-c2s = [i[0] for i in inData if i[2] == 2.0]
+def discriminant (x,cls,cov,mu,prior):
+	""" x: point to be classified 
+	  cls: the class
+	  cov: covariance of class
+	   mu: mean of class
+    prior: prior of class (estimate) """
+	precision = np.linalg.inv(cov)
+	return np.dot(np.dot(x.T,precision),mu)-0.5*np.dot(mu.T,np.dot(precision,mu))+math.log(prior)
 
-mean_est_c0 = sum(c0s)/len(c0s)
-mean_est_c1 = sum(c1s)/len(c1s)
-mean_est_c2 = sum(c2s)/len(c2s)
+def lda(x,c_cov,means):
+	""" x: point to be classified 
+	c_cov: covariance of classes
+	means: list of (means, obs) for all classes
+		n: total no. of observations
+	"""
+	argmax = float("-inf")
+	classification = None
+	n = sum([i[1] for i in means]) # Needed to compute prior
+	no_classes = len(means)
+	# Find argmax for discriminant
+	for c in range(no_classes):
+		mu 	  = means[c][0]
+		prior = means[c][1]/n
+		disc_k= discriminant(x,c,c_cov,mu,prior)
+		print "disc_k: ",disc_k
+		if disc_k > argmax:
+			argmax = disc_k
+			classification = c
+	return classification
+	
+## Compute mean/covariance estimates for each class
+c0s = [np.array(i[:2]) for i in inData if i[2] == 0.0]
+c1s = [np.array(i[:2]) for i in inData if i[2] == 1.0]
+c2s = [np.array(i[:2]) for i in inData if i[2] == 2.0]
+len_c0s, len_c1s, len_c2s = len(c0s), len(c1s), len(c2s)
+mean_est_c0 = np.sum(c0s, axis=0)/len_c0s
+mean_est_c1 = np.sum(c1s, axis=0)/len_c1s
+mean_est_c2 = np.sum(c2s, axis=0)/len_c2s
+cov_c0 = np.cov(zip(*c0s))
+cov_c1 = np.cov(zip(*c1s))
+cov_c2 = np.cov(zip(*c2s))
 
 ## Compute common covariance matrix
+l = len_c0s + len_c1s + len_c2s
+no_classes = 3
+class_cov = (cov_c0+cov_c1+cov_c2)/(l-no_classes)
+
+# Preprocessing of data
+means = [mean_est_c0, mean_est_c1, mean_est_c2]
+no_obs = [len_c0s, len_c1s, len_c2s]
+means = zip(means, no_obs)
+
+# Test:
+#pnt=np.array([4.5,0.35])
+#print lda(pnt, class_cov, means)
 
 ## II.2.2 Nearest neighbour with Euclidean metric
 
 def dist(x,y,M):
  	# Euclidean metric if M = identity matrix
 	xm = x*M
-	ym = y*M
 	return np.sqrt(np.sum((np.array(xm-ym))**2))
 
 def closestClass (S_star, k):
