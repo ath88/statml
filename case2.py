@@ -14,7 +14,6 @@ import scipy.io
 import copy
 
 ## Helper functions 
-
 def multi_norm (x, sigma, mu):
 	const = 1.0/(((2*np.pi)**(len(mu.T)/2))*np.sqrt(np.linalg.det(sigma)))
 	part1 = 1/((2*np.pi)**(len(mu)/2))
@@ -95,8 +94,9 @@ def rms (t,x,w):
 rms_sel1 = rms(t_test, x_testSet_sel1, w_ml_sel1)
 rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
 
-#print "RMS for ML 1:  ", rms_sel1
-#print "RMS for ML 2:  ", rms_sel2
+print "Maximum likelihood solution"
+print "		- RMS for ML 1:  ", rms_sel1
+print "		- RMS for ML 2:  ", rms_sel2
 
 ## II.1.2 Maximum a posteriori solution
 
@@ -176,14 +176,20 @@ rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
 all_rms1.append(rms_MAP_sel1)
 all_rms2.append(rms_MAP_sel2)
 
-## Plot the RMS for different values of alpha
-#alphas = [0.001,  1, 10, 100]
-#figure()
-#subplot(223)
-#plot(alphas, all_rms1, c="green", label="Selection 1")
-#plot(alphas, all_rms2, c="red", label = "Selection 2")
-#legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-#show()
+## Plot the RMS for different values of alphaA
+alphas = [0.001,  1, 10, 100]
+figure()
+subplot(223)
+plot(alphas, all_rms1, c="green", label="Selection 1")
+plot(alphas, all_rms2, c="red", label = "Selection 2")
+legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+show()
+
+print "Maximum a posteriori solution"
+for i in range(len(alphas)):
+	print "For alpha =",alphas[i],":\n"
+	print "RMS MAP (Selection 1): ", all_rms1[i]
+	print "RMS MAP (Selection 2): ", all_rms2[i]
 
 ## II.2.1 Linear discriminant analysis
 
@@ -200,12 +206,12 @@ test_classes = rawTestData[2]
 test_inData = list(map(list,zip(test_length,test_width,test_classes)))
 
 # Scatter plot
-#figure()
+figure()
 #title('Scatter plot of training data.')
-#xlabel('Length')
-#ylabel('Width')
-#scatter(length,width,c=classes)
-#show()
+xlabel('Length')
+ylabel('Width')
+scatter(length,width,c=classes)
+show()
 
 ## Linear Discriminant Analysis
 def discriminant (x,cls,cov,mu,prior):
@@ -223,10 +229,6 @@ def lda(x,c_cov,means):
 		n: total no. of observations
 	"""
 	no_classes = len(means)
-	def to_vect(i):
-		v = np.zeros(no_classes)
-		v[i] = 1.0
-		return v
 	argmax = float("-inf")
 	classification = None
 	n = sum([i[1] for i in means]) # Needed to compute prior
@@ -235,11 +237,15 @@ def lda(x,c_cov,means):
 		mu 	  = means[c][0]
 		prior = means[c][1]/n
 		disc_k= discriminant(x,c,c_cov,mu,prior)
-		print "disc_k: ",disc_k
 		if disc_k > argmax:
 			argmax = disc_k
 			classification = c
-	return to_vect(classification)
+	return to_vect(classification, no_classes)
+
+def to_vect(i,cls):
+	v = np.zeros(cls)
+	v[i] = 1.0
+	return v
 
 ## Training of the model:
 ## Compute mean/covariance estimates for each class
@@ -259,16 +265,31 @@ l = len_c0s + len_c1s + len_c2s
 no_classes = 3
 class_cov = (cov_c0+cov_c1+cov_c2)/(l-no_classes)
 
-# Preprocessing of data
 means = [mean_est_c0, mean_est_c1, mean_est_c2]
-no_obs = [len_c0s, len_c1s, len_c2s]
-means = zip(means, no_obs)
+meanobs = zip(means, [len_c0s, len_c1s, len_c2s])
 
-pnt = np.array([4.5,0.35])
-print lda(pnt, class_cov, means)
+print "Linear Discriminant Analysis"
+print "  Training data:"
+print "   - Class covariance:\n", class_cov
+print "   - Means for the classes:\n"
+for i in range(len(means)):
+	print "         - Class number ", i, ": ", means[i]
 
-# Test data:
+# Training data
+lda_training_errors = 0
+for i in inData:
+	new_class = lda(np.array(i[:2]), class_cov, meanobs)
+	if not (new_class == to_vect(i[2],no_classes)).all():
+		lda_training_errors += 1
+print "  Training data errors: ", lda_training_errors
 
+# Test data
+lda_test_errors = 0
+for i in test_inData:
+	new_class = lda(np.array(i[:2]), class_cov, meanobs)
+	if not (new_class == to_vect(i[2],no_classes)).all():
+		lda_test_errors += 1
+print "  Test data errors: ", lda_test_errors
 
 ## II.2.2 Nearest neighbour with Euclidean metric
 
