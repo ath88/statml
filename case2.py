@@ -11,6 +11,7 @@ import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
 from PIL import Image
 import scipy.io
+import copy
 
 ## Helper functions 
 
@@ -26,8 +27,6 @@ def multi_norm (x, sigma, mu):
 
 # Matrix from bodyfat.mat
 rawData = scipy.io.loadmat('Data/bodyfat.mat')['data']
-# MEAN OF THE SECOND COLUMN
-#print sum(rawData.T[1])/len(rawData.T[1])
 
 # Take 80% of rawData as training set and 20% as test set
 division = math.ceil(len(np.matrix(rawData))*0.8)
@@ -137,8 +136,11 @@ width = rawTrainingData[1]
 classes = rawTrainingData[2]
 inData = list(map(list,zip(length,width,classes)))
 
-#print width
-#print inData
+rawTestData = np.loadtxt('Iris/irisTest.dt').T
+test_length = rawTestData[0]
+test_width = rawTestData[1]
+test_classes = rawTestData[2]
+test_inData = list(map(list,zip(test_length,test_width,test_classes)))
 
 # Scatter plot
 #figure()
@@ -149,7 +151,6 @@ inData = list(map(list,zip(length,width,classes)))
 #show()
 
 ## Linear Discriminant Analysis
-
 def discriminant (x,cls,cov,mu,prior):
 	""" x: point to be classified 
 	  cls: the class
@@ -158,7 +159,6 @@ def discriminant (x,cls,cov,mu,prior):
     prior: prior of class (estimate) """
 	precision = np.linalg.inv(cov)
 	return np.dot(np.dot(x.T,precision),mu)-0.5*np.dot(mu.T,np.dot(precision,mu))+math.log(prior)
-
 def lda(x,c_cov,means):
 	""" x: point to be classified 
 	c_cov: covariance of classes
@@ -179,7 +179,8 @@ def lda(x,c_cov,means):
 			argmax = disc_k
 			classification = c
 	return classification
-	
+
+## Training of the model:
 ## Compute mean/covariance estimates for each class
 c0s = [np.array(i[:2]) for i in inData if i[2] == 0.0]
 c1s = [np.array(i[:2]) for i in inData if i[2] == 1.0]
@@ -198,21 +199,20 @@ no_classes = 3
 class_cov = (cov_c0+cov_c1+cov_c2)/(l-no_classes)
 
 # Preprocessing of data
-means = [mean_est_c0, mean_est_c1, mean_est_c2]
-no_obs = [len_c0s, len_c1s, len_c2s]
-means = zip(means, no_obs)
+#means = [mean_est_c0, mean_est_c1, mean_est_c2]
+#no_obs = [len_c0s, len_c1s, len_c2s]
+#means = zip(means, no_obs)
 
-# Test:
-#pnt=np.array([4.5,0.35])
+#pnt = np.array([4.5,0.35])
 #print lda(pnt, class_cov, means)
+
+# Test data:
+
 
 ## II.2.2 Nearest neighbour with Euclidean metric
 
-def dist(x,y,M):
- 	# Euclidean metric if M = identity matrix
-	xm = x*M
-	ym = x*M
-	return np.sqrt(np.sum((np.array(xm-ym))**2))
+def dist(x,y):
+	return np.linalg.norm(x-y)
 
 def closestClass (S_star, k):
 	classes = [c for [x,y,c] in S_star]
@@ -222,33 +222,114 @@ def closestClass (S_star, k):
 			maxCount = i
 	return maxCount
 
-def knn (k, S, pnt, M):
+def knn (k, S, pnt):
 	pnt = np.array(pnt)
 	S_star = []
 	while len(S_star) < k:
 		closest = S[0]
 		for i in S[1:]:
-			if dist(pnt, i[:2], M) < dist(pnt, closest[:2], M):
+			if dist(pnt, i[:2]) < dist(pnt, closest[:2]):
 				closest = i
 		S_star.append(closest)
 		S.remove(closest)
 	# Decide which class is argmax
 	return closestClass(S_star,k)
-M = np.matrix([[1,0],[0,10]])
 
-#kek = knn(4, testData0, (0,0))
-#kek = knn(3, testData, (3,4))
+## Accuracy on training set:
 
-kek = knn (1, inData, (6,0.3), M)
-#print kek
-kek = knn (3, inData, (6,0.3), M)
-#print kek
-kek = knn (5, inData, (6,0.3), M)
-#print kek
-kek = knn (7, inData, (6,0.3), M)
-#print kek
+## Accuracy on test set:
+#For k = 1
+k = 1
+errors_k1 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k1 += 1
+print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
 
+# For k = 3
+k = 3
+errors_k3 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k3 += 1
 
+print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
 
+# For k = 5
+k = 5
+errors_k5 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k5 += 1
 
+print "errors for k=",k,": ", errors_k5,"/",len(test_inData)
 
+k = 7
+errors_k7 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k7 += 1
+
+print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
+
+## II.2.4 Nearest neighbour with non-standard metric
+
+# Redefine metric
+def dist(x,y):
+	M = np.matrix([[1,0],[0,10]])
+	xm = np.dot(M,x)
+	ym = np.dot(M,y)
+	return np.linalg.norm(xm-ym)
+
+## Accuracy on training set:
+
+## Accuracy on test set:
+#For k = 1
+k = 1
+errors_k1 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k1 += 1
+print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
+
+# For k = 3
+k = 3
+errors_k3 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k3 += 1
+
+print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
+
+# For k = 5
+k = 5
+errors_k5 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k5 += 1
+
+print "errors for k=",k,": ", errors_k5,"/",len(test_inData)# For k = 5
+
+k = 7
+errors_k7 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k7 += 1
+
+print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
