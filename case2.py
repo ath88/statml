@@ -317,8 +317,7 @@ def knn (k, S, pnt):
 	# Decide which class is argmax
 	return closestClass(S_star,k)
 
-## Accuracy on training set:
-
+print "Nearest neighbour (Euclidean metric)"
 ## Accuracy on test set:
 #For k = 1
 k = 1
@@ -328,7 +327,7 @@ for i in test_inData:
 	new_class = knn(k, S_test, i[:2])
 	if new_class != i[2]:
 		errors_k1 += 1
-print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
+print "    Errors for k=",k,": ", errors_k1,"/",len(test_inData)
 
 # For k = 3
 k = 3
@@ -339,7 +338,7 @@ for i in test_inData:
 	if new_class != i[2]:
 		errors_k3 += 1
 
-print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
+print "    Errors for k=",k,": ", errors_k3,"/",len(test_inData)
 
 # For k = 5
 k = 5
