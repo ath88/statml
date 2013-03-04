@@ -101,32 +101,89 @@ rms_sel2 = rms(t_test, x_testSet_sel2, w_ml_sel2)
 ## II.1.2 Maximum a posteriori solution
 
 ## Estimate m_N and S_N (training)
-beta  = 1 # fixed throughout assignment
+#fixed throughout computations
+beta  = 1
+S_N_1_snd = beta*np.dot(design1.T,design1)
+S_N_2_snd = beta*np.dot(design2.T,design2) 
+all_rms1 = []
+all_rms2 = []
 
-# BEGIN WORKING
+## MAP for alpha = 0.001
+alpha = 0.001
+# For selection 1
+S_N_1 = alpha*np.identity(5)+S_N_1_snd
+m_N_1 = beta*np.dot(np.linalg.inv(S_N_1), design1.T)*t_train # MAP estimate
+# For selection 2
+S_N_2 = alpha*np.identity(2)+S_N_2_snd
+m_N_2 = beta*np.dot(np.linalg.inv(S_N_2), design2.T)*t_train # MAP estimate
+# Convert from matrix to array type
+m_N_1 = np.squeeze(np.asarray(m_N_1))
+m_N_2 = np.squeeze(np.asarray(m_N_2))
+# Compute RMS
+rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
+rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
+all_rms1.append(rms_MAP_sel1)
+all_rms2.append(rms_MAP_sel2)
 
 ## MAP for alpha = 1
 alpha = 1
 # For selection 1
-S_N_1 = alpha*np.identity(5)+beta*np.dot(design1.T,design1)
+S_N_1 = alpha*np.identity(5)+S_N_1_snd
 m_N_1 = beta*np.dot(np.linalg.inv(S_N_1), design1.T)*t_train # MAP estimate
-
 # For selection 2
-S_N_2 = alpha*np.identity(2)+beta*np.dot(design2.T,design2)
+S_N_2 = alpha*np.identity(2)+S_N_2_snd
 m_N_2 = beta*np.dot(np.linalg.inv(S_N_2), design2.T)*t_train # MAP estimate
-
 # Convert from matrix to array type
 m_N_1 = np.squeeze(np.asarray(m_N_1))
 m_N_2 = np.squeeze(np.asarray(m_N_2))
-
+# Compute RMS
 rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
 rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
+all_rms1.append(rms_MAP_sel1)
+all_rms2.append(rms_MAP_sel2)
 
-#print "RMS for MAP 1 (a="+str(alpha)+"): ", rms_MAP_sel1
-#print "RMS for MAP 2 (a="+str(alpha)+"): ", rms_MAP_sel2
+## MAP for alpha = 10
+alpha = 10
+# For selection 1
+S_N_1 = alpha*np.identity(5)+S_N_1_snd
+m_N_1 = beta*np.dot(np.linalg.inv(S_N_1), design1.T)*t_train # MAP estimate
+# For selection 2
+S_N_2 = alpha*np.identity(2)+S_N_2_snd
+m_N_2 = beta*np.dot(np.linalg.inv(S_N_2), design2.T)*t_train # MAP estimate
+# Convert from matrix to array type
+m_N_1 = np.squeeze(np.asarray(m_N_1))
+m_N_2 = np.squeeze(np.asarray(m_N_2))
+# Compute RMS
+rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
+rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
+all_rms1.append(rms_MAP_sel1)
+all_rms2.append(rms_MAP_sel2)
 
-# END WORKING
+## MAP for alpha = 1000
+alpha = 100
+# For selection 1
+S_N_1 = alpha*np.identity(5)+S_N_1_snd
+m_N_1 = beta*np.dot(np.linalg.inv(S_N_1), design1.T)*t_train # MAP estimate
+# For selection 2
+S_N_2 = alpha*np.identity(2)+S_N_2_snd
+m_N_2 = beta*np.dot(np.linalg.inv(S_N_2), design2.T)*t_train # MAP estimate
+# Convert from matrix to array type
+m_N_1 = np.squeeze(np.asarray(m_N_1))
+m_N_2 = np.squeeze(np.asarray(m_N_2))
+# Compute RMS
+rms_MAP_sel1 = rms(t_test, x_testSet_sel1, m_N_1)
+rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
+all_rms1.append(rms_MAP_sel1)
+all_rms2.append(rms_MAP_sel2)
 
+## Plot the RMS for different values of alpha
+#alphas = [0.001,  1, 10, 100]
+#figure()
+#subplot(223)
+#plot(alphas, all_rms1, c="green", label="Selection 1")
+#plot(alphas, all_rms2, c="red", label = "Selection 2")
+#legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+#show()
 
 ## II.2.1 Linear discriminant analysis
 
@@ -165,10 +222,14 @@ def lda(x,c_cov,means):
 	means: list of (means, obs) for all classes
 		n: total no. of observations
 	"""
+	no_classes = len(means)
+	def to_vect(i):
+		v = np.zeros(no_classes)
+		v[i] = 1.0
+		return v
 	argmax = float("-inf")
 	classification = None
 	n = sum([i[1] for i in means]) # Needed to compute prior
-	no_classes = len(means)
 	# Find argmax for discriminant
 	for c in range(no_classes):
 		mu 	  = means[c][0]
@@ -178,7 +239,7 @@ def lda(x,c_cov,means):
 		if disc_k > argmax:
 			argmax = disc_k
 			classification = c
-	return classification
+	return to_vect(classification)
 
 ## Training of the model:
 ## Compute mean/covariance estimates for each class
@@ -199,12 +260,12 @@ no_classes = 3
 class_cov = (cov_c0+cov_c1+cov_c2)/(l-no_classes)
 
 # Preprocessing of data
-#means = [mean_est_c0, mean_est_c1, mean_est_c2]
-#no_obs = [len_c0s, len_c1s, len_c2s]
-#means = zip(means, no_obs)
+means = [mean_est_c0, mean_est_c1, mean_est_c2]
+no_obs = [len_c0s, len_c1s, len_c2s]
+means = zip(means, no_obs)
 
-#pnt = np.array([4.5,0.35])
-#print lda(pnt, class_cov, means)
+pnt = np.array([4.5,0.35])
+print lda(pnt, class_cov, means)
 
 # Test data:
 
@@ -288,8 +349,6 @@ def dist(x,y):
 	xm = np.dot(M,x)
 	ym = np.dot(M,y)
 	return np.linalg.norm(xm-ym)
-
-## Accuracy on training set:
 
 ## Accuracy on test set:
 #For k = 1
