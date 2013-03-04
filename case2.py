@@ -211,6 +211,7 @@ means = zip(means, no_obs)
 def dist(x,y,M):
  	# Euclidean metric if M = identity matrix
 	xm = x*M
+	ym = x*M
 	return np.sqrt(np.sum((np.array(xm-ym))**2))
 
 def closestClass (S_star, k):
