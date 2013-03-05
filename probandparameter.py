@@ -10,10 +10,12 @@ from pylab import *
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as plot3d
 from PIL import Image
+from scipy import misc
 
 # Question 1.1
 
-title("3 Gaussian distribution functions with different mean and standard deviation")
+figure()
+
 ylabel('y')
 xlabel('x')
 axis([-7,9,0,0.5])
@@ -24,17 +26,19 @@ x = linspace(-6,8,200)
 mean = -1
 variance = 1
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
 
 mean = 0
 variance = 2
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
 
 mean = 2
 variance = 3
 sigma = sqrt(variance)
-#plot(x,normpdf(x,mean,sigma))
+plot(x,normpdf(x,mean,sigma))
+
+show()
 
 # Question 1.2
 
@@ -73,10 +77,11 @@ for i in ySamples:
 sampleVar = sampleVar/observations
 
 # Plot sample mean, mean and data points
-title('Maximum likelihood sample mean')
-#scatter(x1s, x2s)
-#scatter(means[0], means[1], color="red")
-#scatter(sampleMeans[0], sampleMeans[1], color="green")
+figure()
+scatter(x1s, x2s)
+scatter(means[0], means[1], color="red")
+scatter(sampleMeans[0], sampleMeans[1], color="green")
+show()
 
 # The difference between the sampe and true mean
 diff_in_mean = abs(sampleMeans - means)
@@ -86,21 +91,22 @@ diff_in_mean = abs(sampleMeans - means)
 # Complete, 8 bins seems to be the best
 bins = 8
 
-#figure()
+figure()
 histo1 = histogram(x1s,bins)
 xlocations1 = array(range(len(histo1[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x1 values")
-#bar(xlocations1,histo1[0])
+bar(xlocations1,histo1[0])
 
-#figure()
+figure()
 histo2 = histogram(x2s,bins)
 xlocations2 = array(range(len(histo2[0])))+0.1
 ax = gca()
 ax.xaxis.set_visible(False)
 title("x2 values")
-#bar(xlocations2+0.2,histo2[0])
+bar(xlocations2+0.2,histo2[0])
+show()
 
 # Question 1.6
 figure()
@@ -111,22 +117,16 @@ hist1 = histogram(x1s)
 xlocs = array(range(len(hist1[0])))
 
 # Plot the analytical solution, u=1, var=0.3
-norm_xlocs = linspace(-0.5,2.5,200)
+norm_xlocs = linspace(-0.5,2.5,300)
 
 # Correcting analytical solution because of bin width
-bar(hist1[1][:-1], hist1[0]/100,np.diff(hist1[1]))
-plot(norm_xlocs, normpdf(norm_xlocs, 1, 0.3)/10.0, color="red")
+bar(hist1[1][:-1], hist1[0],np.diff(hist1[1]))
+plot(norm_xlocs, normpdf(norm_xlocs, 1, 0.3)*10.0, color="red")
 
 #xlim(xlocs[0]-2, xlocs[-1]+2)
 #ylim(0,1)
-#show()
-figure()
+show()
 
-#bar(xlocs, hist1[0])
-#prange = np.arange(0, 10, 0.001)
-#plot(prange, normpdf(prange, 5, (0.3))/20)
-#show()
-#
 # Question 1.7
 N = 100
 bins = 20
@@ -154,18 +154,18 @@ dx = 0.12 * ones_like(zpos)
 dy = dx.copy()
 dz = hist.flatten()
 
-title("Histogram, 20 bins, 100 samples")
+fig = figure()
 
 #draw graph
-#fig = figure()
-#ax = fig.add_subplot(111, projection='3d')
-#ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
+ax = fig.add_subplot(111, projection='3d')
+ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='r', zsort='average')
 
-#show()
+show()
+
+# Question 1.8
 def average(y):
 	return sum(y)/len(y)
 
-# Question 1.8
 def generateValues (lda, L, count):
 	mu_y = 1/lda
 	mu_est = 0
@@ -194,7 +194,7 @@ xlabel('x')
 ylim(0,0.04)
 grid(True)
 plot(lvalues, abs_deviations)
-show()
+#show()
 #fig1.savefig('q18_1.jpg')
 
 # Plotting a transformed value
@@ -214,31 +214,42 @@ show()
 # Question 1.9
 
 # Helper function
+global cache
+cache = {} 
+
 def multi_norm (x, sigma, mu):
-	const = 1.0/(((2*np.pi)**(len(mu.T)/2))*np.sqrt(np.linalg.det(sigma)))
-	part1 = 1/((2*np.pi)**(len(mu)/2))
-	part2 = 1/(np.linalg.det(sigma)**0.5)
+        key = tuple(x.tolist()[0])
+        try:
+            return cache[key]
+        except:
+            pass
+	const = pow((2*np.pi), (len(mu.T)/2)) * pow(np.linalg.det(sigma), 0.5)
 	x_mu = np.matrix((x-mu)).T
 	precision = np.matrix(sigma).I
-	return const*np.exp(-0.5*dot(x_mu.T, dot(precision, x_mu)))
+        exp = -0.5*dot(x_mu.T, dot(precision, x_mu))
+	cache[key] = (np.exp(exp)/const).tolist()[0][0]
+        return cache[key]
 
 def reDraw(pixel, sigma, mu):
 	mnorm = multi_norm(pixel, sigma, mu)
-	meanColour = multi_norm(mu, sigma, mu)
-	#if mnorm > meanColour/1.09:
-	if mnorm == meanColour:
-		return (255,255,255) # white
-	elif mnorm > meanColour/1.05:
-		return (192,192,192)
-	elif mnorm > meanColour/1.1:
-		return (152,152,152)
-	elif mnorm > meanColour/1.15:
-		return (112,112,112)
-	elif mnorm > meanColour/1.2:
-		return (112,112,112)
-	elif mnorm > meanColour/1.25:
-		return (112,112,112)
-	return (0,0,0) # black
+	meanColor = multi_norm(mu, sigma, mu)
+        return thermcolor(mnorm,meanColor)
+
+def thermcolor(value,maxvalue):
+        ratio = value/maxvalue
+        scale = ratio * 5 * 255
+        if scale <= 255:
+            return [0,0,scale]
+        elif scale > 255 and scale <= 255*2:
+            return [scale - 255, 0, 255]
+        elif scale > 255*2 and scale <= 255*3:
+            return [255, 0, 255 - (scale - 255*2)]
+        elif scale > 255*3 and scale <= 255*4:
+            return [255, scale - 255*3, 0]
+        elif scale > 255*4:
+            return [255, 255, scale - 255*4]
+        return [0,0,0]
+
 
 # Process training set
 im = Image.open("kande1.jpg").crop((150,264,330,328))
@@ -246,12 +257,11 @@ im = Image.open("kande1.jpg").crop((150,264,330,328))
 r = []
 g = []
 b = []
-length = 0
 for a in im.getcolors(10000000): 
-	occ = a[0]
-	r.append(a[1][0]*occ)
-	g.append(a[1][1]*occ)
-	b.append(a[1][2]*occ)
+    for i in range(0,a[0]):
+	r.append(a[1][0])
+	g.append(a[1][1])
+	b.append(a[1][2])
 
 # Maximum likelihood estimate for sample mean
 mean = []
@@ -268,50 +278,99 @@ for i in range(0,len(r)):
 	cov += dot(sub.transpose(),sub)
 cov /= len(r)
 
-# Process all pixels
-im = Image.open("kande1.jpg")
-pixs = im.load()
+figure()
+img = misc.imread("kande1.jpg")
 
-# Generate new image
-for i in range(0,im.size[0]): 	  # width of image
-	for j in range(0,im.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-im.save('new_kande1.jpg')
+# coloring of picture is included in 1.10
 
 # Question 1.10
+print "Working on 1.10, this will take awhile"
 
-# Weighted average position
 qhat = np.array([0,0])
+C = matrix(zeros((2,2)))
 Z = 0
-for i in range(0,im.size[0]): 	  # width of image
-	for j in range(0,im.size[1]): # height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
+
 		Z += norm_const
-		qhat += np.array([i,j], dtype=float64)*norm_const
+                 
+                #Weighted Average
+		qhat = qhat + dot(np.array([i,j]),norm_const)
+
+
 qhat /= Z
 
-# Spatial covariance
-C = 0
-for i in range(0,im.size[0]): 	  # width of image
-	for j in range(0,im.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
-		norm_const = multi_norm(pixs[i,j], cov, mean)[0,0]
-		qdiff = np.array([i,j]) - qhat
-		C += np.dot(qdiff, qdiff.T)*norm_const
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
+		#Spatial Covarianec
+		qdiff = np.matrix([i,j]) - np.matrix(qhat)
+		C = C + np.dot(qdiff.T, qdiff) * norm_const
+
+                #redrawing according to covariance
+		img[i,j] = reDraw(matrix(img[i,j]), cov, mean)
 C /= Z
 
-# Plot q hat and contours of C on top of our image
+imshow(img)
+scatter(qhat[1],qhat[0],color='green',s=100)
+
+contours = zeros((img.shape[0],img.shape[1]))
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+                contours[i][j] = multi_norm(matrix([i,j]),C,qhat)
+
+x = range(0,640)
+y = range(0,480)
+contour(y,x,contours,colors='#00ff00')
+title("Attempt at detecting the pitcher in kande1.jpg")
+show()
+
+# clear cache for contours
+cache = {}
 
 # Question 1.11
+print "Working on 1.11, this will take awhile"
 
-im2 = Image.open("kande2.jpg")
-pixs = im2.load()
+figure()
+img = misc.imread("kande2.jpg")
 
-# Generate new image for the second pitcher
-for i in range(0,im2.size[0]): # width of image
-	for j in range(0,im2.size[1]): #height of image
-		pixs[i,j] = reDraw(pixs[i,j], cov, mean)
+qhat = np.array([0,0])
+C = matrix(zeros((2,2)))
+Z = 0
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
 
-im2.save('new_kande2.jpg')
+		Z += norm_const
+                 
+                #Weighted Average
+		qhat = qhat + dot(np.array([i,j]),norm_const)
 
+qhat /= Z
+
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+		norm_const = multi_norm(matrix(img[i,j]), cov, mean)
+		#Spatial Covarianec
+		qdiff = np.matrix([i,j]) - np.matrix(qhat)
+		C = C + np.dot(qdiff.T, qdiff) * norm_const
+
+                #redrawing according to covariance
+		img[i,j] = reDraw(matrix(img[i,j]), cov, mean)
+C /= Z
+
+imshow(img)
+scatter(qhat[1],qhat[0],color='green',s=100)
+
+contours = zeros((img.shape[0],img.shape[1]))
+for i in range(0,img.shape[0]): 	  # width of image
+	for j in range(0,img.shape[1]): # height of image
+                contours[i][j] = multi_norm(matrix([i,j]),C,qhat,)
+
+x = range(0,640)
+y = range(0,480)
+title("Attempt at detecting the pitcher in kande2.jpg")
+contour(y,x,contours,colors='#00ff00')
+
+show()
