@@ -362,7 +362,7 @@ for i in test_inData:
 print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
 
 ## II.2.4 Nearest neighbour with non-standard metric
-
+y=[] #for plotting
 # Redefine metric
 def dist(x,y):
 	M = np.matrix([[1,0],[0,10]])
@@ -379,6 +379,7 @@ for i in test_inData:
 	new_class = knn(k, S_test, i[:2])
 	if new_class != i[2]:
 		errors_k1 += 1
+y.append(errors_k1)
 print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
 
 # For k = 3
@@ -389,7 +390,7 @@ for i in test_inData:
 	new_class = knn(k, S_test, i[:2])
 	if new_class != i[2]:
 		errors_k3 += 1
-
+y.append(errors_k3)
 print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
 
 # For k = 5
@@ -400,9 +401,21 @@ for i in test_inData:
 	new_class = knn(k, S_test, i[:2])
 	if new_class != i[2]:
 		errors_k5 += 1
+y.append(errors_k5)
+print "errors for k=",k,": ", errors_k5,"/",len(test_inData)
 
-print "errors for k=",k,": ", errors_k5,"/",len(test_inData)# For k = 5
+# For k = 6
+k = 6
+errors_k6 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k6 += 1
+y.append(errors_k6)
+print "errors for k=",k,": ", errors_k6,"/",len(test_inData)
 
+# For k = 7
 k = 7
 errors_k7 = 0
 for i in test_inData:
@@ -410,5 +423,23 @@ for i in test_inData:
 	new_class = knn(k, S_test, i[:2])
 	if new_class != i[2]:
 		errors_k7 += 1
-
+y.append(errors_k7)
 print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
+
+# For k = 9
+k = 9
+errors_k9 = 0
+for i in test_inData:
+	S_test = copy.deepcopy(inData)
+	new_class = knn(k, S_test, i[:2])
+	if new_class != i[2]:
+		errors_k9 += 1
+y.append(errors_k9)
+print "errors for k=",k,": ", errors_k9,"/",len(test_inData)
+
+# Plot
+figure()
+xlabel('k (number of neighbours)')
+ylabel('Classification errors')
+plot([1,3,5,6,7,9], y)
+show()
