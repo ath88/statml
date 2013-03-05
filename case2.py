@@ -290,52 +290,6 @@ for i in test_inData:
 		lda_test_errors += 1
 print "  Test data errors: ", lda_test_errors
 
-## II.2.5 LDA with rescaled data
-
-# Transform data (same as multiplying width by 10)
-inData_trans = list(map(list, zip(length,10*width,classes)))
-test_inData_trans = list(map(list, zip(test_length,10*test_width,test_classes)))
-
-## Training of the model:
-## Compute mean/covariance estimates for each class
-c0s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 0.0]
-c1s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 1.0]
-c2s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 2.0]
-mean_est_c0_trans = np.sum(c0s_trans, axis=0)/len_c0s
-mean_est_c1_trans = np.sum(c1s_trans, axis=0)/len_c1s
-mean_est_c2_trans = np.sum(c2s, axis=0)/len_c2s
-cov_c0_trans = np.cov(zip(*c0s_trans))
-cov_c1_trans = np.cov(zip(*c1s_trans))
-cov_c2_trans = np.cov(zip(*c2s_trans))
-
-## Compute common covariance matrix
-class_cov_trans = (cov_c0_trans+cov_c1_trans+cov_c2_trans)/(l-no_classes)
-means_trans = [mean_est_c0_trans, mean_est_c1_trans, mean_est_c2_trans]
-meanobs_trans = zip(means_trans, [len_c0s, len_c1s, len_c2s])
-
-print "Linear Discriminant Analysis [TRANSFORMED]"
-print "  Training data:"
-print "   - Class covariance:\n", class_cov_trans
-print "   - Means for the classes:\n"
-for i in range(len(means_trans)):
-	print "         - Class number ", i, ": ", means_trans[i]
-
-# Training data
-lda_training_errors_trans = 0
-for i in inData_trans:
-	new_class = lda(np.array(i[:2]), class_cov, meanobs)
-	if not (new_class == to_vect(i[2],no_classes)).all():
-		lda_training_errors_trans += 1
-print "  Training data errors: ", lda_training_errors_trans
-
-# Test data
-lda_test_errors_trans = 0
-for i in test_inData_trans:
-	new_class = lda(np.array(i[:2]), class_cov, meanobs)
-	if not (new_class == to_vect(i[2],no_classes)).all():
-		lda_test_errors_trans += 1
-print "  Test data errors: ", lda_test_errors_trans
-
 ## II.2.2 Nearest neighbour with Euclidean metric
 
 def dist(x,y):
@@ -415,5 +369,51 @@ xlabel('k (number of neighbours)')
 ylabel('Classification errors')
 plot([1,3,5,6,7,9], y)
 show()
+
+## II.2.5 LDA with rescaled data
+
+# Transform data (same as multiplying width by 10)
+inData_trans = list(map(list, zip(length,10*width,classes)))
+test_inData_trans = list(map(list, zip(test_length,10*test_width,test_classes)))
+
+## Training of the model:
+## Compute mean/covariance estimates for each class
+c0s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 0.0]
+c1s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 1.0]
+c2s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 2.0]
+mean_est_c0_trans = np.sum(c0s_trans, axis=0)/len_c0s
+mean_est_c1_trans = np.sum(c1s_trans, axis=0)/len_c1s
+mean_est_c2_trans = np.sum(c2s, axis=0)/len_c2s
+cov_c0_trans = np.cov(zip(*c0s_trans))
+cov_c1_trans = np.cov(zip(*c1s_trans))
+cov_c2_trans = np.cov(zip(*c2s_trans))
+
+## Compute common covariance matrix
+class_cov_trans = (cov_c0_trans+cov_c1_trans+cov_c2_trans)/(l-no_classes)
+means_trans = [mean_est_c0_trans, mean_est_c1_trans, mean_est_c2_trans]
+meanobs_trans = zip(means_trans, [len_c0s, len_c1s, len_c2s])
+
+print "Linear Discriminant Analysis [TRANSFORMED]"
+print "  Training data:"
+print "   - Class covariance:\n", class_cov_trans
+print "   - Means for the classes:\n"
+for i in range(len(means_trans)):
+	print "         - Class number ", i, ": ", means_trans[i]
+
+# Training data
+lda_training_errors_trans = 0
+for i in inData_trans:
+	new_class = lda(np.array(i[:2]), class_cov, meanobs)
+	if not (new_class == to_vect(i[2],no_classes)).all():
+		lda_training_errors_trans += 1
+print "  Training data errors: ", lda_training_errors_trans
+
+# Test data
+lda_test_errors_trans = 0
+for i in test_inData_trans:
+	new_class = lda(np.array(i[:2]), class_cov, meanobs)
+	if not (new_class == to_vect(i[2],no_classes)).all():
+		lda_test_errors_trans += 1
+print "  Test data errors: ", lda_test_errors_trans
 
 
