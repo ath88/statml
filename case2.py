@@ -187,7 +187,7 @@ show()
 
 print "Maximum a posteriori solution"
 for i in range(len(alphas)):
-	print "For alpha =",alphas[i],":\n"
+	print "For alpha =",alphas[i],":"
 	print "RMS MAP (Selection 1): ", all_rms1[i]
 	print "RMS MAP (Selection 2): ", all_rms2[i]
 
@@ -317,52 +317,36 @@ def knn (k, S, pnt):
 	# Decide which class is argmax
 	return closestClass(S_star,k)
 
-print "Nearest neighbour (Euclidean metric)"
+def knn_test(k, existingPoints, testData):
+	errors = 0
+	for i in testData:
+		S_test = copy.deepcopy(existingPoints)
+		new_class = knn(k, S_test, i[:2])
+		if new_class != i[2]:
+			errors += 1
+	y.append(errors)
+	print "    Errors for k=",k,": ", errors
+
+y=[] # For plotting
+
 ## Accuracy on test set:
-#For k = 1
-k = 1
-errors_k1 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k1 += 1
-print "    Errors for k=",k,": ", errors_k1,"/",len(test_inData)
+print "Nearest neighbour (Euclidean metric)"
+knn_test(1,inData,test_inData)
+knn_test(3,inData,test_inData)
+knn_test(5,inData,test_inData)
+knn_test(6,inData,test_inData)
+knn_test(7,inData,test_inData)
+knn_test(9,inData,test_inData)
 
-# For k = 3
-k = 3
-errors_k3 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k3 += 1
-
-print "    Errors for k=",k,": ", errors_k3,"/",len(test_inData)
-
-# For k = 5
-k = 5
-errors_k5 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k5 += 1
-
-print "errors for k=",k,": ", errors_k5,"/",len(test_inData)
-
-k = 7
-errors_k7 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k7 += 1
-
-print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
+# Plot
+figure()
+xlabel('k (number of neighbours)')
+ylabel('Classification errors')
+plot([1,3,5,6,7,9], y)
+show()
 
 ## II.2.4 Nearest neighbour with non-standard metric
-y=[] #for plotting
+
 # Redefine metric
 def dist(x,y):
 	M = np.matrix([[1,0],[0,10]])
@@ -370,72 +354,15 @@ def dist(x,y):
 	ym = np.dot(M,y)
 	return np.linalg.norm(xm-ym)
 
-## Accuracy on test set:
-#For k = 1
-k = 1
-errors_k1 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k1 += 1
-y.append(errors_k1)
-print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
+y=[] # For plotting
 
-# For k = 3
-k = 3
-errors_k3 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k3 += 1
-y.append(errors_k3)
-print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
-
-# For k = 5
-k = 5
-errors_k5 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k5 += 1
-y.append(errors_k5)
-print "errors for k=",k,": ", errors_k5,"/",len(test_inData)
-
-# For k = 6
-k = 6
-errors_k6 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k6 += 1
-y.append(errors_k6)
-print "errors for k=",k,": ", errors_k6,"/",len(test_inData)
-
-# For k = 7
-k = 7
-errors_k7 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k7 += 1
-y.append(errors_k7)
-print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
-
-# For k = 9
-k = 9
-errors_k9 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k9 += 1
-y.append(errors_k9)
-print "errors for k=",k,": ", errors_k9,"/",len(test_inData)
+print "Nearest neighbour (non-standard metric)"
+knn_test(1,inData,test_inData)
+knn_test(3,inData,test_inData)
+knn_test(5,inData,test_inData)
+knn_test(6,inData,test_inData)
+knn_test(7,inData,test_inData)
+knn_test(9,inData,test_inData)
 
 # Plot
 figure()
