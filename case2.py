@@ -383,7 +383,7 @@ c1s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 1.0]
 c2s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 2.0]
 mean_est_c0_trans = np.sum(c0s_trans, axis=0)/len_c0s
 mean_est_c1_trans = np.sum(c1s_trans, axis=0)/len_c1s
-mean_est_c2_trans = np.sum(c2s, axis=0)/len_c2s
+mean_est_c2_trans = np.sum(c2s_trans, axis=0)/len_c2s
 cov_c0_trans = np.cov(zip(*c0s_trans))
 cov_c1_trans = np.cov(zip(*c1s_trans))
 cov_c2_trans = np.cov(zip(*c2s_trans))
@@ -403,7 +403,7 @@ for i in range(len(means_trans)):
 # Training data
 lda_training_errors_trans = 0
 for i in inData_trans:
-	new_class = lda(np.array(i[:2]), class_cov, meanobs)
+	new_class = lda(np.array(i[:2]), class_cov_trans, meanobs_trans)
 	if not (new_class == to_vect(i[2],no_classes)).all():
 		lda_training_errors_trans += 1
 print "  Training data errors: ", lda_training_errors_trans
@@ -411,9 +411,7 @@ print "  Training data errors: ", lda_training_errors_trans
 # Test data
 lda_test_errors_trans = 0
 for i in test_inData_trans:
-	new_class = lda(np.array(i[:2]), class_cov, meanobs)
+	new_class = lda(np.array(i[:2]), class_cov_trans, meanobs_trans)
 	if not (new_class == to_vect(i[2],no_classes)).all():
 		lda_test_errors_trans += 1
 print "  Test data errors: ", lda_test_errors_trans
-
-
