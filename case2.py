@@ -328,8 +328,28 @@ def knn_test(k, existingPoints, testData):
 
 y=[] # For plotting
 
+## Accuracy on training set:
+print "Nearest neighbour (Euclidean metric)"
+print "Training set:"
+knn_test(1,inData,inData)
+knn_test(3,inData,inData)
+knn_test(5,inData,inData)
+knn_test(6,inData,inData)
+knn_test(7,inData,inData)
+knn_test(9,inData,inData)
+
+# Plot
+figure()
+xlabel('k (number of neighbours)')
+ylabel('Classification errors')
+plot([1,3,5,6,7,9], y)
+show()
+
+y=[] # For plotting
+
 ## Accuracy on test set:
 print "Nearest neighbour (Euclidean metric)"
+print "Test set:"
 knn_test(1,inData,test_inData)
 knn_test(3,inData,test_inData)
 knn_test(5,inData,test_inData)
