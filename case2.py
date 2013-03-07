@@ -176,7 +176,7 @@ rms_MAP_sel2 = rms(t_test, x_testSet_sel2, m_N_2)
 all_rms1.append(rms_MAP_sel1)
 all_rms2.append(rms_MAP_sel2)
 
-## Plot the RMS for different values of alphaA
+## Plot the RMS for different values of alpha
 alphas = [0.001,  1, 10, 100]
 figure()
 subplot(223)
@@ -187,7 +187,7 @@ show()
 
 print "Maximum a posteriori solution"
 for i in range(len(alphas)):
-	print "For alpha =",alphas[i],":\n"
+	print "For alpha =",alphas[i],":"
 	print "RMS MAP (Selection 1): ", all_rms1[i]
 	print "RMS MAP (Selection 2): ", all_rms2[i]
 
@@ -241,7 +241,6 @@ def lda(x,c_cov,means):
 			argmax = disc_k
 			classification = c
 	return to_vect(classification, no_classes)
-
 def to_vect(i,cls):
 	v = np.zeros(cls)
 	v[i] = 1.0
@@ -317,50 +316,33 @@ def knn (k, S, pnt):
 	# Decide which class is argmax
 	return closestClass(S_star,k)
 
-## Accuracy on training set:
+def knn_test(k, existingPoints, testData):
+	errors = 0
+	for i in testData:
+		S_test = copy.deepcopy(existingPoints)
+		new_class = knn(k, S_test, i[:2])
+		if new_class != i[2]:
+			errors += 1
+	y.append(errors)
+	print "    Errors for k=",k,": ", errors
+
+y=[] # For plotting
 
 ## Accuracy on test set:
-#For k = 1
-k = 1
-errors_k1 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k1 += 1
-print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
+print "Nearest neighbour (Euclidean metric)"
+knn_test(1,inData,test_inData)
+knn_test(3,inData,test_inData)
+knn_test(5,inData,test_inData)
+knn_test(6,inData,test_inData)
+knn_test(7,inData,test_inData)
+knn_test(9,inData,test_inData)
 
-# For k = 3
-k = 3
-errors_k3 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k3 += 1
-
-print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
-
-# For k = 5
-k = 5
-errors_k5 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k5 += 1
-
-print "errors for k=",k,": ", errors_k5,"/",len(test_inData)
-
-k = 7
-errors_k7 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k7 += 1
-
-print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
+# Plot
+figure()
+xlabel('k (number of neighbours)')
+ylabel('Classification errors')
+plot([1,3,5,6,7,9], y)
+show()
 
 ## II.2.4 Nearest neighbour with non-standard metric
 
@@ -371,45 +353,65 @@ def dist(x,y):
 	ym = np.dot(M,y)
 	return np.linalg.norm(xm-ym)
 
-## Accuracy on test set:
-#For k = 1
-k = 1
-errors_k1 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k1 += 1
-print "errors for k=",k,": ", errors_k1,"/",len(test_inData)
+y=[] # For plotting
 
-# For k = 3
-k = 3
-errors_k3 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k3 += 1
+print "Nearest neighbour (non-standard metric)"
+knn_test(1,inData,test_inData)
+knn_test(3,inData,test_inData)
+knn_test(5,inData,test_inData)
+knn_test(6,inData,test_inData)
+knn_test(7,inData,test_inData)
+knn_test(9,inData,test_inData)
 
-print "errors for k=",k,": ", errors_k3,"/",len(test_inData)
+# Plot
+figure()
+xlabel('k (number of neighbours)')
+ylabel('Classification errors')
+plot([1,3,5,6,7,9], y)
+show()
 
-# For k = 5
-k = 5
-errors_k5 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k5 += 1
+## II.2.5 LDA with rescaled data
 
-print "errors for k=",k,": ", errors_k5,"/",len(test_inData)# For k = 5
+# Transform data (same as multiplying width by 10)
+inData_trans = list(map(list, zip(length,10*width,classes)))
+test_inData_trans = list(map(list, zip(test_length,10*test_width,test_classes)))
 
-k = 7
-errors_k7 = 0
-for i in test_inData:
-	S_test = copy.deepcopy(inData)
-	new_class = knn(k, S_test, i[:2])
-	if new_class != i[2]:
-		errors_k7 += 1
+## Training of the model:
+## Compute mean/covariance estimates for each class
+c0s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 0.0]
+c1s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 1.0]
+c2s_trans = [np.array(i[:2]) for i in inData_trans if i[2] == 2.0]
+mean_est_c0_trans = np.sum(c0s_trans, axis=0)/len_c0s
+mean_est_c1_trans = np.sum(c1s_trans, axis=0)/len_c1s
+mean_est_c2_trans = np.sum(c2s_trans, axis=0)/len_c2s
+cov_c0_trans = np.cov(zip(*c0s_trans))
+cov_c1_trans = np.cov(zip(*c1s_trans))
+cov_c2_trans = np.cov(zip(*c2s_trans))
 
-print "errors for k=",k,": ", errors_k7,"/",len(test_inData)
+## Compute common covariance matrix
+class_cov_trans = (cov_c0_trans+cov_c1_trans+cov_c2_trans)/(l-no_classes)
+means_trans = [mean_est_c0_trans, mean_est_c1_trans, mean_est_c2_trans]
+meanobs_trans = zip(means_trans, [len_c0s, len_c1s, len_c2s])
+
+print "Linear Discriminant Analysis [TRANSFORMED]"
+print "  Training data:"
+print "   - Class covariance:\n", class_cov_trans
+print "   - Means for the classes:\n"
+for i in range(len(means_trans)):
+	print "         - Class number ", i, ": ", means_trans[i]
+
+# Training data
+lda_training_errors_trans = 0
+for i in inData_trans:
+	new_class = lda(np.array(i[:2]), class_cov_trans, meanobs_trans)
+	if not (new_class == to_vect(i[2],no_classes)).all():
+		lda_training_errors_trans += 1
+print "  Training data errors: ", lda_training_errors_trans
+
+# Test data
+lda_test_errors_trans = 0
+for i in test_inData_trans:
+	new_class = lda(np.array(i[:2]), class_cov_trans, meanobs_trans)
+	if not (new_class == to_vect(i[2],no_classes)).all():
+		lda_test_errors_trans += 1
+print "  Test data errors: ", lda_test_errors_trans
