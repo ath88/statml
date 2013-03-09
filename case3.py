@@ -8,8 +8,12 @@ import math
 from pylab import *
 import numpy as np
 import scipy.io
+from svm import * 
 
 ### III.1 Neural Networks
+
+# III.1.1 Neural network implementation
+
 def activation (a):
 	return a/(1+abs(a))
 
@@ -71,8 +75,7 @@ class NeuralNetwork ():
 			self.z_hd[j] = self.act(sumHdn) # Linear output neurons = no activation function?
 			#self.z_hd[j] = sumHdn
 		return self.z_hd
-
-	def backPropagate (self, t, errfn=self.mse):
+	def backPropagate (self, t, errfn):
 		"""
 			t: Target data
 			errfn: Error function
@@ -101,7 +104,7 @@ class NeuralNetwork ():
 		n = 1 # learning rate
 		# Update input layer
 		for i in range(self.inn):
-			self.w_in[i] = self.w_in[i] - n*self.delta_in[i]*self.actp(
+			pass #self.w_in[i] = self.w_in[i] - n*self.delta_in[i]*self.actp(
 
 		# Update hidden layer
 
@@ -118,16 +121,35 @@ xor = [
 [[1,0], [1]],
 [[1,1], [0]]
 ]
-nn = NeuralNetwork(1,1,1,activation)
-print nn.training([2,3],[1,2,3])
-
-# III.1.1 Neural network implementation
+nn = NeuralNetwork(1,1,1,activation, activationp)
+#print nn.training([2,3],[1,2,3])
 
 # III.1.1 Neural network training
 
 ### III.2 Support Vector Machines
 
 # III.2.1 Data normalization
+
+# Load data
+
+raw_training_data    = np.loadtxt('data/parkinsonsTrainStatML.dt').T
+training_data 	     = raw_training_data[:22]
+training_target_data = raw_training_data[22]
+
+raw_test_data    = np.loadtxt('data/parkinsonsTestStatML.dt').T
+test_data 	     = raw_test_data[:22]
+test_target_data = raw_test_data[22]
+
+means_train = []
+for i in training_data:
+	means_train.append(sum(i)/len(i))
+
+means_test = []
+for i in test_data:
+	means_test.append(sum(i)/len(i))
+
+# Compute the 
+
 # III.2.2 Model selection using grid-search
 
 # III.2.3.1 Support vectors

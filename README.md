@@ -6,6 +6,7 @@ We use python and the following packages have to be installed to run our code:
 scipy
 numpy
 pylab
+libsvm
 PIL (Python Image Library)
 
 
