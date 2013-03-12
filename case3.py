@@ -11,14 +11,13 @@ import scipy.io
 from svm import * 
 
 ### III.1 Neural Networks
-
 # III.1.1 Neural network implementation
 
 def activation (a):
 	return a/(1+abs(a))
 
 def activationp (a):
-	return 1/(1+abs(a))^2
+	return 1/(1+abs(a))**2
 
 class NeuralNetwork ():
 	"""
@@ -37,24 +36,29 @@ class NeuralNetwork ():
 		self.act    = act
 		self.actp   = actp
 		# Data structures for activation data and weights
-		self.z_in  = np.ones(d)    #[0]*d
-		self.z_hd  = np.ones(m)    #[0]*d
-		self.z_out = np.ones(k)    #[0]*d
-		self.w_in  = np.ones((d,1))  #mkMatrix(d,1)
-		self.w_hd  = np.ones((m,d))  #mkMatrix(m,d)
-		self.w_out = np.ones((k,m))  #mkMatrix(k,m)
+		self.a_hd  = np.ones(m) 
+
+		self.z_in  = np.ones(d) #
+		self.z_hd  = np.ones(m)    
+		self.z_out = np.ones(k)    
+		self.w_in  = np.ones((d,1)) #
+		self.w_hd  = np.ones((m,d))
+		self.w_out = np.ones((k,m))
 		
 		# Data structures for backpropagation
 		self.delta_hd  = np.ones(m)
 		self.delta_out = np.ones(k)
+	def train (self, x, t):
+		self.forwardPropagate(x)
+		return self.backPropagate(t)
 
 	def forwardPropagate (self, x):
 		""" Forward propagate in neural network.
 			x: training data
-			w: weights
 		"""
-		assert(len(x) == len(w)-1), 'Wrong dimensions of input and weight vectors.'
+		assert(len(x) == self.inn), 'Wrong dimensions of input and weight vectors.'
 		x = np.concatenate((np.array([1]),np.array(x)),axis=0) # absorb w_0
+
 		# For every input neuron (in case we wanted to add non-linear activation)
 		for i in range(self.inn):
 			self.z_in[i] = self.w_in[i]*x[i]
@@ -64,48 +68,59 @@ class NeuralNetwork ():
 			sumIn = 0
 			for i in range(self.inn):
 				sumIn += self.w_hd[j][i]*self.z_in[i]
+			self.a_hd[j] = sumIn # Needed for backprop (5.56)
 			self.z_hd[j] = self.act(sumIn)
 
 		# For every output neuron
 		for k in range(self.out):
 			sumHdn = 0
 			for j in range(self.hidden):
-				sumHdn += self.w_out[k][j]*self.z_hd[i]
-			self.z_hd[j] = self.act(sumHdn) # Linear output neurons = no activation function?
-			#self.z_hd[j] = sumHdn
-		return self.z_hd
-	def backPropagate (self, t, errfn):
+				sumHdn += self.w_out[k][j]*self.z_hd[j]
+			self.z_out[k] = self.act(sumHdn) # Linear output neurons = no activation function?
+			#self.z_out[k] = sumHdn
+		return self.z_out
+
+	def backPropagate (self, t, errfn=None):
 		"""
 			t: Target data
 			errfn: Error function
 		"""
 		assert(len(t)==self.out), 'Target vector malformed.'
+		if errfn is None:
+			errfn = self.mse
 		t = np.array(t)
-		# Compute output deltas
+		
+		# Compute output deltas (using 5.54)
 		for k in range(self.out):
-			self.delta_out[k] = t[k] - z_out[k]
+			self.delta_out[k] = t[k] - self.z_out[k]
 	
-		# Compute hidden deltas
+		# Compute hidden deltas (using 5.56)
 		for j in range(self.hidden):
 			deltaSum = 0
 			for k in range(self.out):
 				deltaSum += self.w_out[k][j]*self.delta_out[k]
-			self.delta_hd[j] = self.actp(self.z_hd[j]) * deltaSum
+			self.delta_hd[j] = self.actp(self.a_hd[j]) * deltaSum
 	
-		# Update the weights using gradient descent
+		# Update the weights
 		n = 1 # learning rate
-		# Update input layer
+
+		# Update input/hidden layer
 		for i in range(self.inn):
 			for j in range(self.hidden):
-				self.w_in[j][i] = self.w_in[j][i] + n*self.delta_hd[j]
+				gradient = self.delta_hd[j]*self.z_in[i]
+				self.w_hd[j][i] = self.w_hd[j][i] - n*gradient 
 
-		# Update hidden layer
-
-		# Update output layer
-	def mse (self, x, y):
-		pass
-	def training (self, x, t):
-		pass
+		# Update hidden/output layer
+		for j in range(self.hidden):
+			for k in range(self.out):
+				gradient = self.delta_out[k]*self.z_hd[j]
+				self.w_hd[k][j] = self.w_hd[k][j] - n*gradient 
+		return self.mse(t) # how did we do?
+	def mse (self, t):
+		error = 0
+		for k in range(self.out):
+			error += (t[k]-self.z_out[k])**2
+		return error/self.out
 
 # Test if it works on xor
 xor = [
@@ -114,8 +129,9 @@ xor = [
 [[1,0], [1]],
 [[1,1], [0]]
 ]
-nn = NeuralNetwork(1,1,1,activation, activationp)
-#print nn.training([2,3],[1,2,3])
+nn = NeuralNetwork(2,3,1,activation, activationp)
+for i in xor:
+	print nn.train(*i)
 
 # III.1.1 Neural network training
 
