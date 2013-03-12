@@ -45,7 +45,6 @@ class NeuralNetwork ():
 		self.w_out = np.ones((k,m))  #mkMatrix(k,m)
 		
 		# Data structures for backpropagation
-		self.delta_in  = np.ones(d)
 		self.delta_hd  = np.ones(m)
 		self.delta_out = np.ones(k)
 
@@ -93,18 +92,12 @@ class NeuralNetwork ():
 				deltaSum += self.w_out[k][j]*self.delta_out[k]
 			self.delta_hd[j] = self.actp(self.z_hd[j]) * deltaSum
 	
-		# Compute input deltas
-		for i in range(self.inn):
-			deltaSum = 0
-			for j in range(self.out):
-				deltaSum += self.w_hd[j][i]*self.delta_hd[j]
-			self.delta_in[i] = self.actp(self.z_in[i]) * deltaSum
-		
 		# Update the weights using gradient descent
 		n = 1 # learning rate
 		# Update input layer
 		for i in range(self.inn):
-			pass #self.w_in[i] = self.w_in[i] - n*self.delta_in[i]*self.actp(
+			for j in range(self.hidden):
+				self.w_in[j][i] = self.w_in[j][i] + n*self.delta_hd[j]
 
 		# Update hidden layer
 
