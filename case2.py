@@ -338,13 +338,7 @@ knn_test(6,inData,inData)
 knn_test(7,inData,inData)
 knn_test(9,inData,inData)
 
-# Plot
-figure()
-xlabel('k (number of neighbours)')
-ylabel('Classification errors')
-plot([1,3,5,6,7,9], y)
-show()
-
+y_train = copy.deepcopy(y)
 y=[] # For plotting
 
 ## Accuracy on test set:
@@ -359,9 +353,10 @@ knn_test(9,inData,test_inData)
 
 # Plot
 figure()
-xlabel('k (number of neighbours)')
-ylabel('Classification errors')
-plot([1,3,5,6,7,9], y)
+subplot(223)
+plot([1,3,5,6,7,9], y_train, c="green", label="Training set")
+plot([1,3,5,6,7,9], y, c="red", label="Test set")
+legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 show()
 
 ## II.2.4 Nearest neighbour with non-standard metric
@@ -375,7 +370,22 @@ def dist(x,y):
 
 y=[] # For plotting
 
+## Accuracy on training set:
 print "Nearest neighbour (non-standard metric)"
+print "Training set:"
+knn_test(1,inData,inData)
+knn_test(3,inData,inData)
+knn_test(5,inData,inData)
+knn_test(6,inData,inData)
+knn_test(7,inData,inData)
+knn_test(9,inData,inData)
+
+y_train = copy.deepcopy(y)
+y=[] # For plotting
+
+## Accuracy on training set:
+print "Nearest neighbour (non-standard metric)"
+print "Test set:"
 knn_test(1,inData,test_inData)
 knn_test(3,inData,test_inData)
 knn_test(5,inData,test_inData)
@@ -385,9 +395,10 @@ knn_test(9,inData,test_inData)
 
 # Plot
 figure()
-xlabel('k (number of neighbours)')
-ylabel('Classification errors')
-plot([1,3,5,6,7,9], y)
+subplot(223)
+plot([1,3,5,6,7,9], y_train, c="green", label="Training set")
+plot([1,3,5,6,7,9], y, c="red", label="Test set")
+legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 show()
 
 ## II.2.5 LDA with rescaled data
