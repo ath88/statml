@@ -139,19 +139,24 @@ class NeuralNetwork ():
 xor_input  = [[0,0],[0,1],[1,0],[1,1]]
 xor_input  = [[0,0],[0,1],[1,0],[1,1]]
 xor_target = [[0],[1],[1],[0]]
-nn = NeuralNetwork(2,3,1,activation, activationp)
-nn.training(xor_input, xor_target)
 
-print "0,0: ", nn.forwardPropagate(xor_input[0])
-print "0,1: ", nn.forwardPropagate(xor_input[1])
-print "1,0: ", nn.forwardPropagate(xor_input[2])
-print "1,1: ", nn.forwardPropagate(xor_input[3])
+#nn = NeuralNetwork(2,3,1,activation, activationp)
+#nn.training(xor_input, xor_target)
+#print "0,0: ", nn.forwardPropagate(xor_input[0])
+#print "0,1: ", nn.forwardPropagate(xor_input[1])
+#print "1,0: ", nn.forwardPropagate(xor_input[2])
+#print "1,1: ", nn.forwardPropagate(xor_input[3])
 
 # III.1.1 Neural network training
 
 ### III.2 Support Vector Machines
 
 # III.2.1 Data normalization
+def normalise (x):
+	avg = np.average(x)
+	std = np.std(x)
+	fn_trans = lambda x: (x-avg)/std
+	return map(fn_trans, x)
 
 # Load data 
 raw_training_data    = np.loadtxt('data/parkinsonsTrainStatML.dt').T
@@ -162,15 +167,34 @@ raw_test_data    = np.loadtxt('data/parkinsonsTestStatML.dt').T
 test_data 	     = raw_test_data[:22]
 test_target_data = raw_test_data[22]
 
+# Compute the means and variances
 means_train = []
+vars_train  = []
 for i in training_data:
-	means_train.append(sum(i)/len(i))
+	means_train.append(np.average(i))
+	vars_train.append(np.var(i))
 
-means_test = []
+means_test, vars_test = [], []
 for i in test_data:
-	means_test.append(sum(i)/len(i))
+	means_test.append(np.average(i))
+	vars_test.append(np.var(i))
 
-# Compute the 
+# Now normalise and compute mean & variance
+training_data_norm = []
+means_train_norm = []
+vars_train_norm  = []
+for ft in training_data:
+	training_data_norm.append(normalise(ft))
+	means_train_norm.append(np.average(training_data_norm[-1]))
+	vars_train_norm.append(np.var(training_data_norm[-1]))
+
+test_data_norm = []
+means_test_norm = []
+vars_test_norm = []
+for ft in test_data:
+	test_data_norm.append(normalise(ft))
+	means_test_norm.append(np.average(test_data_norm[-1]))
+	vars_test_norm.append(np.var(test_data_norm[-1]))
 
 # III.2.2 Model selection using grid-search
 
