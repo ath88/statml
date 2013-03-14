@@ -32,7 +32,7 @@ division = math.ceil(len(np.matrix(rawData))*0.8)
 # Permute data
 randomRawData = np.random.permutation(rawData)
 trainingSet = randomRawData[:division]
-testSet	    = randomRawData[:division]
+testSet	    = randomRawData[division:]
 # Target variable t as columns
 t_train = np.matrix([row[1] for row in trainingSet]).T
 t_test  = np.matrix([row[1] for row in testSet]).T
@@ -77,8 +77,8 @@ x_testSet_sel1 = np.matrix([testSet_asCols[3] ,testSet_asCols[6], testSet_asCols
 x_testSet_sel2 = np.matrix(testSet_asCols[7])
 
 # Add a [1..1] column to the test set
-x_testSet_sel1 = np.reshape(np.append(padding, x_testSet_sel1), (5,202)).T
-x_testSet_sel2 = np.reshape(np.append(padding, x_testSet_sel2), (2,202)).T
+x_testSet_sel1 = np.reshape(np.append(np.ones((50,1)), x_testSet_sel1), (5,50)).T
+x_testSet_sel2 = np.reshape(np.append(np.ones((50,1)), x_testSet_sel2), (2,50)).T
 
 # Root Mean Square
 def rms (t,x,w):
