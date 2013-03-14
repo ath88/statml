@@ -17,7 +17,7 @@ def activation (a):
 	return a/(1+abs(a))
 
 def activationp (a):
-	return 1/(1+abs(a))**2
+	return 1/((1+abs(a))**2)
 
 class NeuralNetwork ():
 	"""
@@ -49,56 +49,67 @@ class NeuralNetwork ():
 		self.delta_hd  = np.ones(m)
 		self.delta_out = np.ones(k)
 	
-	def forwardPropagate (self, x):
+	def forwardPropagate (self, xs):
 		""" Forward propagate in neural network.
 			x: training data
 		"""
-		assert(len(x) == self.inn), 'Wrong dimensions of input and weight vectors.'
-		x = np.concatenate((np.array([1]),np.array(x)),axis=0) # absorb w_0
-
-		# For every input neuron (in case we wanted to add non-linear activation)
-		for i in range(self.inn):
-			self.z_in[i] = self.w_in[i]*x[i]
-
-		# For every hidden neuron (1 layer only!)
-		for j in range(self.hidden):
-			sumIn = 0
+		xs = np.concatenate((np.array([1]),np.array(xs)),axis=0) # absorb w_0
+		for x in xs:
+			x = [x]
+			# For every input neuron (in case we wanted to add non-linear activation)
 			for i in range(self.inn):
-				sumIn += self.w_hd[j][i]*self.z_in[i]
-			self.a_hd[j] = sumIn # Needed for backprop (5.56)
-			self.z_hd[j] = self.act(sumIn)
+				self.z_in[i] = self.w_in[i]*x[i]
 
-		# For every output neuron
-		for k in range(self.out):
-			sumHdn = 0
+			# For every hidden neuron (1 hidden layer only!)
 			for j in range(self.hidden):
-				sumHdn += self.w_out[k][j]*self.z_hd[j]
-			self.z_out[k] = self.act(sumHdn) # Linear output neurons = no activation function?
-			#self.z_out[k] = sumHdn
+				sumIn = 0
+				for i in range(self.inn):
+					sumIn += self.w_hd[j][i]*self.z_in[i]
+				self.a_hd[j] = sumIn # Needed for backprop (5.56)
+				self.z_hd[j] = self.act(sumIn)
+
+			# For every output neuron
+			for k in range(self.out):
+				sumHdn = 0
+				for j in range(self.hidden):
+					sumHdn += self.w_out[k][j]*self.z_hd[j]
+				self.z_out[k] = self.act(sumHdn) # Linear output neurons = no activation function?
+		# Take average
+		data_len = len(xs)
+		for k in range(self.out):
+			self.z_out[k] /= data_len
+		for j in range(self.hidden):
+			self.z_hd[j] /= data_len
 		return self.z_out
 
-	def backPropagate (self, t, errfn=None):
+	def backPropagate (self, ts, errfn=None):
 		"""
 			t: Target data
 			errfn: Error function
 		"""
-		assert(len(t)==self.out), 'Target vector malformed.'
 		if errfn is None:
 			errfn = self.mse
-		t = np.array(t)
-		
-		# Compute output deltas (using 5.54)
-		for k in range(self.out):
-			self.delta_out[k] = t[k] - self.z_out[k]
-	
-		# Compute hidden deltas (using 5.56)
-		for j in range(self.hidden):
-			deltaSum = 0
+		for t in ts:
+			t = [t]
+			# Compute output deltas (using 5.54)
 			for k in range(self.out):
-				deltaSum += self.w_out[k][j]*self.delta_out[k]
-			self.delta_hd[j] = self.actp(self.a_hd[j]) * deltaSum
-			#self.delta_hd[j] = self.actp(self.z_hd[j]) * deltaSum
-	
+				self.delta_out[k] += t[k] - self.z_out[k]
+			# Compute hidden deltas (using 5.56)
+			for j in range(self.hidden):
+				deltaSum = 0
+				for k in range(self.out):
+					deltaSum += self.w_out[k][j]*self.delta_out[k]
+				self.delta_hd[j] += self.actp(self.a_hd[j]) * deltaSum
+		# Take average
+		data_len = len(ts)
+		for k in range(self.out):
+			self.delta_out[k] /= data_len
+		for j in range(self.hidden):
+			self.delta_hd[j] /= data_len
+		# Now do update	
+		self.updateWeights()
+
+	def updateWeights (self):
 		# Update the weights
 		n = 1 # learning rate
 
@@ -113,10 +124,6 @@ class NeuralNetwork ():
 			for k in range(self.out):
 				gradient = self.delta_out[k]*self.z_hd[j]
 				self.w_out[k][j] = self.w_out[k][j] - n*gradient 
-		
-		# How did we do?
-		return self.mse(t)
-
 	def mse (self, t):
 		error = 0
 		for k in range(self.out):
@@ -131,30 +138,33 @@ class NeuralNetwork ():
 		"""
 		assert(len(xs) == len(ts)), 'Dimensions of training and target data do not correspond.'
 		for i in range(it):
-			for j in range(len(xs)):
-				self.forwardPropagate(xs[j]) # output is stored in self.z_out
-				self.backPropagate(ts[j])
+			self.forwardPropagate(xs) # output is stored in self.z_out
+			self.backPropagate(ts)
 
-# Test if it works on xor
-xor_input  = [[0,0],[0,1],[1,0],[1,1]]
-xor_input  = [[0,0],[0,1],[1,0],[1,1]]
-xor_target = [[0],[1],[1],[0]]
+raw = np.loadtxt('data/sincTrain25.dt').T
+ins, outs = raw[0], raw[1]
 
-#nn = NeuralNetwork(2,3,1,activation, activationp)
-#nn.training(xor_input, xor_target)
-#print "0,0: ", nn.forwardPropagate(xor_input[0])
-#print "0,1: ", nn.forwardPropagate(xor_input[1])
-#print "1,0: ", nn.forwardPropagate(xor_input[2])
-#print "1,1: ", nn.forwardPropagate(xor_input[3])
+# Tests
+nn = NeuralNetwork(1,2,1,activation, activationp)
+nn.training(ins, outs)
+
+# Get out predictions
+testouts = []
+for i in inp:
+	testouts.append(nn.forwardPropagate([i]))
+
+print "Errors: ", np.array(testouts)
 
 # III.1.1 Neural network training
 
-### III.2 Support Vector Machines
+## III.2 Support Vector Machines
 
 # III.2.1 Data normalization
-def normalise (x):
-	avg = np.average(x)
-	std = np.std(x)
+def normalise (x, avg=None, std=None):
+	if avg is None:
+		avg = np.average(x)
+	if std is None:
+		std = np.std(x)
 	fn_trans = lambda x: (x-avg)/std
 	return map(fn_trans, x)
 
@@ -191,8 +201,11 @@ for ft in training_data:
 test_data_norm = []
 means_test_norm = []
 vars_test_norm = []
-for ft in test_data:
-	test_data_norm.append(normalise(ft))
+for ft in range(len(test_data)):
+	avg = means_train_norm[ft]
+	std = math.sqrt(vars_train_norm[ft])
+	# Apply f-mapping from training
+	test_data_norm.append(normalise(test_data[ft],avg,std))
 	means_test_norm.append(np.average(test_data_norm[-1]))
 	vars_test_norm.append(np.var(test_data_norm[-1]))
 
