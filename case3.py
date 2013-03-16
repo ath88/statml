@@ -150,10 +150,10 @@ nn.training(ins, outs)
 
 # Get out predictions
 testouts = []
-for i in inp:
+for i in ins:
 	testouts.append(nn.forwardPropagate([i]))
 
-print "Errors: ", np.array(testouts)
+#print "Errors: ", np.array(testouts)
 
 # III.1.1 Neural network training
 
@@ -178,8 +178,7 @@ test_data 	     = raw_test_data[:22]
 test_target_data = raw_test_data[22]
 
 # Compute the means and variances
-means_train = []
-vars_train  = []
+means_train, vars_train = [], []
 for i in training_data:
 	means_train.append(np.average(i))
 	vars_train.append(np.var(i))
@@ -190,17 +189,13 @@ for i in test_data:
 	vars_test.append(np.var(i))
 
 # Now normalise and compute mean & variance
-training_data_norm = []
-means_train_norm = []
-vars_train_norm  = []
+training_data_norm, means_train_norm, vars_train_norm  = [], [], []
 for ft in training_data:
 	training_data_norm.append(normalise(ft))
 	means_train_norm.append(np.average(training_data_norm[-1]))
 	vars_train_norm.append(np.var(training_data_norm[-1]))
 
-test_data_norm = []
-means_test_norm = []
-vars_test_norm = []
+test_data_norm, means_test_norm, vars_test_norm = [], [], []
 for ft in range(len(test_data)):
 	avg = means_train_norm[ft]
 	std = math.sqrt(vars_train_norm[ft])
