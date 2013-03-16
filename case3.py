@@ -30,6 +30,8 @@ class NeuralNetwork ():
 		actp: first derivative of activation function
 	"""
 	def __init__(self, d, m, k, act, actp):
+		d += 1
+		m += 1
 		self.inn 	= d
 		self.hidden = m
 		self.out 	= k
@@ -38,10 +40,9 @@ class NeuralNetwork ():
 		# Data structures for activation data and weights
 		self.a_hd  = np.ones(m) 
 
-		self.z_in  = np.ones(d)
+		self.z_in  = np.ones(m)
 		self.z_hd  = np.ones(m)    
 		self.z_out = np.ones(k)    
-		self.w_in  = np.ones((d,1))
 		self.w_hd  = np.ones((m,d))
 		self.w_out = np.ones((k,m))
 		
@@ -49,70 +50,54 @@ class NeuralNetwork ():
 		self.delta_hd  = np.ones(m)
 		self.delta_out = np.ones(k)
 	
-	def forwardPropagate (self, xs):
+	def forwardPropagate (self, x):
 		""" Forward propagate in neural network.
 			x: training data
 		"""
-		xs = np.concatenate((np.array([1]),np.array(xs)),axis=0) # absorb w_0
-		for x in xs:
+		if type(x) is not list:
 			x = [x]
-			# For every input neuron (in case we wanted to add non-linear activation)
-			for i in range(self.inn):
-				self.z_in[i] = self.w_in[i]*x[i]
+		x = np.concatenate((np.array([1]),np.array(x)),axis=0) # absorb w_0
 
-			# For every hidden neuron (1 hidden layer only!)
-			for j in range(self.hidden):
-				sumIn = 0
-				for i in range(self.inn):
-					sumIn += self.w_hd[j][i]*self.z_in[i]
-				self.a_hd[j] = sumIn # Needed for backprop (5.56)
-				self.z_hd[j] = self.act(sumIn)
-
-			# For every output neuron
-			for k in range(self.out):
-				sumHdn = 0
-				for j in range(self.hidden):
-					sumHdn += self.w_out[k][j]*self.z_hd[j]
-				self.z_out[k] = self.act(sumHdn) # Linear output neurons = no activation function?
-		# Take average
-		data_len = len(xs)
-		for k in range(self.out):
-			self.z_out[k] /= data_len
+		# No transformation, but needed later
+		for i in range(self.inn):
+			self.z_in[i] = x[i]
+		
+		# For every hidden neuron (1 hidden layer only!)
 		for j in range(self.hidden):
-			self.z_hd[j] /= data_len
+			sumIn = 0
+			for i in range(self.inn):
+				sumIn += self.w_hd[j][i]*x[i]
+			self.a_hd[j] = sumIn # Needed for backprop (5.56)
+			self.z_hd[j] = self.act(sumIn)
+
+		# For every output neuron
+		for k in range(self.out):
+			sumHdn = 0
+			for j in range(self.hidden):
+				sumHdn += self.w_out[k][j]*self.z_hd[j]
+			self.z_out[k] = (sumHdn) # Linear output neurons = no activation function?
 		return self.z_out
 
-	def backPropagate (self, ts, errfn=None):
+	def backPropagate (self, t):
 		"""
 			t: Target data
 			errfn: Error function
 		"""
-		if errfn is None:
-			errfn = self.mse
-		for t in ts:
+		if type(t) is not list:
 			t = [t]
-			# Compute output deltas (using 5.54)
-			for k in range(self.out):
-				self.delta_out[k] += t[k] - self.z_out[k]
-			# Compute hidden deltas (using 5.56)
-			for j in range(self.hidden):
-				deltaSum = 0
-				for k in range(self.out):
-					deltaSum += self.w_out[k][j]*self.delta_out[k]
-				self.delta_hd[j] += self.actp(self.a_hd[j]) * deltaSum
-		# Take average
-		data_len = len(ts)
+		# Compute output deltas (using 5.54)
 		for k in range(self.out):
-			self.delta_out[k] /= data_len
+			self.delta_out[k] += t[k] - self.z_out[k]
+
+		# Compute hidden deltas (using 5.56)
 		for j in range(self.hidden):
-			self.delta_hd[j] /= data_len
-		# Now do update	
-		self.updateWeights()
+			deltaSum = 0
+			for k in range(self.out):
+				deltaSum += self.w_out[k][j]*self.delta_out[k]
+			self.delta_hd[j] += self.actp(self.a_hd[j]) * deltaSum
 
 	def updateWeights (self):
-		# Update the weights
-		n = 1 # learning rate
-
+		n = 0.1 # learning rate
 		# Update input/hidden layer
 		for i in range(self.inn):
 			for j in range(self.hidden):
@@ -124,12 +109,7 @@ class NeuralNetwork ():
 			for k in range(self.out):
 				gradient = self.delta_out[k]*self.z_hd[j]
 				self.w_out[k][j] = self.w_out[k][j] - n*gradient 
-	def mse (self, t):
-		error = 0
-		for k in range(self.out):
-			error += (t[k]-self.z_out[k])**2
-		return error/self.out
-	
+		
 	def training (self, xs, ts, it=100):
 		"""
 			xs: list of input vectors
@@ -137,9 +117,23 @@ class NeuralNetwork ():
 			it: number of iterations on the training data
 		"""
 		assert(len(xs) == len(ts)), 'Dimensions of training and target data do not correspond.'
-		for i in range(it):
-			self.forwardPropagate(xs) # output is stored in self.z_out
-			self.backPropagate(ts)
+		avg = lambda x: x/len(xs) 
+		for j in range(5):
+			delta_hds  = np.zeros(self.hidden)
+			delta_outs = np.zeros(self.out)
+			for i in range(len(xs)):
+				self.forwardPropagate(xs[i])
+				self.backPropagate(ts[i])
+				# Save deltas
+				delta_hds  += self.delta_hd
+				delta_outs += self.delta_out
+			# Take the average of each delta
+			self.delta_hd  = map(avg, delta_hds)
+			self.delta_out = map(avg, delta_outs)
+			# Do update
+			print "hd: ",  self.delta_hd
+			print "out: ", self.delta_out
+			self.updateWeights()
 
 raw = np.loadtxt('data/sincTrain25.dt').T
 ins, outs = raw[0], raw[1]
@@ -149,11 +143,9 @@ nn = NeuralNetwork(1,2,1,activation, activationp)
 nn.training(ins, outs)
 
 # Get out predictions
-testouts = []
-for i in inp:
-	testouts.append(nn.forwardPropagate([i]))
-
-print "Errors: ", np.array(testouts)
+for i in range(len(ins)):
+	prediction = nn.forwardPropagate(ins[i])
+	print outs[i], prediction
 
 # III.1.1 Neural network training
 
