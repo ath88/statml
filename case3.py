@@ -9,6 +9,7 @@ from pylab import *
 import numpy as np
 import scipy.io
 from svmutil import * 
+import copy
 
 ### III.1 Neural Networks
 # III.1.1 Neural network implementation
@@ -69,7 +70,7 @@ class NeuralNetwork ():
 		for j in range(self.hidden):
 			sumIn = 0
 			for i in range(self.inn):
-				sumIn += self.w_hd[j][i]*x[i]
+				sumIn += self.w_hd[j][i]*self.z_in[i]
 			self.a_hd[j] = sumIn # Needed for backprop (5.56)
 			self.z_hd[j] = self.act(sumIn)
 
@@ -78,7 +79,7 @@ class NeuralNetwork ():
 			sumHdn = 0
 			for j in range(self.hidden):
 				sumHdn += self.w_out[k][j]*self.z_hd[j]
-			self.z_out[k] = (sumHdn) # Linear output neurons = no activation function?
+			self.z_out[k] = sumHdn
 		return self.z_out
 
 	def backPropagate (self, t):
@@ -90,7 +91,7 @@ class NeuralNetwork ():
 			t = [t]
 		# Compute output deltas (using 5.54)
 		for k in range(self.out):
-			self.delta_out[k] = t[k] - self.z_out[k]
+			self.delta_out[k] = self.z_out[k] - t[k]
 
 		# Compute hidden deltas (using 5.56)
 		for j in range(self.hidden):
@@ -108,38 +109,43 @@ class NeuralNetwork ():
 				self.g_out[k][j] += self.delta_out[k]*self.z_hd[j]
 
 	def updateWeights (self):
-		n = 0.1 # learning rate
+		n = 0.05 # learning rate
 		# Update input/hidden layer
 		for i in range(self.inn):
 			for j in range(self.hidden):
-				#gradient = self.delta_hd[j]*self.z_in[i]
-				self.g_hd[j][i] /= 25
 				self.w_hd[j][i] = self.w_hd[j][i] - n*self.g_hd[j][i] 
-
 		# Update hidden/output layer
 		for j in range(self.hidden):
 			for k in range(self.out):
-				#gradient = self.delta_out[k]*self.z_hd[j]
-				self.g_out[k][j] /= 25
 				self.w_out[k][j] = self.w_out[k][j] - n*self.g_out[k][j] 
 		
-	def training (self, xs, ts, it=100):
+	def training (self, xs, ts, it=17000):
 		"""
 			xs: list of input vectors
 			ts: list of target vectors
 			it: number of iterations on the training data
 		"""
 		assert(len(xs) == len(ts)), 'Dimensions of training and target data do not correspond.'
-		avg = lambda x: x/len(xs) 
-		for j in range(it):
+		self.forwardPropagate(xs[0])
+		self.backPropagate(xs[0])
+		stop = copy.deepcopy(self.delta_out)
+		for j in range(1,it):
+			self.g_hd  = np.zeros((3,2))
+			self.g_out = np.zeros((1,3))
 			for i in range(len(xs)):
 				self.forwardPropagate(xs[i])
 				self.backPropagate(ts[i])
+			print "delta out",self.delta_out
 			# Do update
 			self.updateWeights()
-			self.g_hd  = np.zeros((3,2))
-			self.g_out = np.zeros((1,3))
-			#print "dout",self.delta_out
+			#if abs(self.delta_out) < 0.005:
+			#	print "stopped at: ", j+i
+			#	break
+#			if abs(self.delta_out) > abs(stop):
+#				print "stopped at: ", j+i
+#				print stop, self.delta_out
+#				break
+#			stop = copy.deepcopy(self.delta_out)
 
 raw = np.loadtxt('data/sincTrain25.dt').T
 ins, outs = raw[0], raw[1]
@@ -148,16 +154,35 @@ ins, outs = raw[0], raw[1]
 nn = NeuralNetwork(1,2,1,activation, activationp)
 nn.training(ins, outs)
 
-# Get out predictions
-prediction = []
+ps = []
+for i in range(len(ins)):
+	p = nn.forwardPropagate(ins[i])[0]
+	ps.append(p)
+	print p, outs[i]
+
+figure()
+scatter(ins, outs)
+scatter(ins, ps, c="red")
+show()
+
+# Verify implementation
+unit1, unit2 = np.zeros(2), np.zeros(2)
+unit1[0], unit2[1] = 1.0, 1.0
+eW, eW1, eW2 = 0, 0 ,0 
+epsilon=0.001
+predictions = []
 for i in range(len(ins)):
 	p = nn.forwardPropagate(ins[i])
-	prediction.append(p)
-	print outs[i], p
+	predictions.append(nn.forwardPropagate(ins[i]))
+	eW += 0.5*(p - outs[i])**2
+	#eW1 += 0.5*((p+epsilon*unit1) - outs[i])**2
+	#eW2 += 0.5*((p+epsilon*unit2) - outs[i])**2
+	#print outs[i], p
+#print "eW ", eW
 
-#figure()
-#plot(outs,prediction)
-#show()
+#print "ew1: ",(eW1 - eW)/epsilon
+#print "ew2: ",(eW2 - eW)/epsilon
+
 
 # III.1.1 Neural network training
 
@@ -178,7 +203,7 @@ training_data 	     = raw_training_data[:22]
 training_target_data = raw_training_data[22]
 
 raw_test_data        = np.loadtxt('data/parkinsonsTestStatML.dt').T
-test_data 	     = raw_test_data[:22]
+test_data 	       	= raw_test_data[:22]
 test_target_data     = raw_test_data[22]
 
 # Compute the means and variances
@@ -254,9 +279,32 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets):
 	sys.stdout = sys.__stdout__
 
 	print "Accuracy for test data using best model: ", result[1][0]
+	return values
 
-grid_search(training_data,training_target_data,test_data,test_target_data)
-grid_search(training_data_norm,training_target_data,test_data_norm,test_target_data)
-
+bestvals = grid_search(training_data,training_target_data,test_data,test_target_data)
+bestvals_norm = grid_search(training_data_norm,training_target_data,test_data_norm,test_target_data)
 
 # III.2.3.1 Support vectors
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
