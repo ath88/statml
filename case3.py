@@ -40,15 +40,18 @@ class NeuralNetwork ():
 		# Data structures for activation data and weights
 		self.a_hd  = np.ones(m) 
 
-		self.z_in  = np.ones(m)
+		self.z_in  = np.ones(d)
 		self.z_hd  = np.ones(m)    
 		self.z_out = np.ones(k)    
 		self.w_hd  = np.ones((m,d))
 		self.w_out = np.ones((k,m))
+	
+		self.g_hd  = np.zeros((m,d))
+		self.g_out = np.zeros((k,m))
 		
 		# Data structures for backpropagation
-		self.delta_hd  = np.ones(m)
-		self.delta_out = np.ones(k)
+		self.delta_hd  = np.zeros(m)
+		self.delta_out = np.zeros(k)
 	
 	def forwardPropagate (self, x):
 		""" Forward propagate in neural network.
@@ -87,28 +90,38 @@ class NeuralNetwork ():
 			t = [t]
 		# Compute output deltas (using 5.54)
 		for k in range(self.out):
-			self.delta_out[k] += t[k] - self.z_out[k]
+			self.delta_out[k] = t[k] - self.z_out[k]
 
 		# Compute hidden deltas (using 5.56)
 		for j in range(self.hidden):
 			deltaSum = 0
 			for k in range(self.out):
 				deltaSum += self.w_out[k][j]*self.delta_out[k]
-			self.delta_hd[j] += self.actp(self.a_hd[j]) * deltaSum
+			self.delta_hd[j] = self.actp(self.a_hd[j]) * deltaSum
+	
+		# Accumulate gradients
+		for i in range(self.inn):
+			for j in range(self.hidden):
+				self.g_hd[j][i] += self.delta_hd[j]*self.z_in[i]
+		for j in range(self.hidden):
+			for k in range(self.out):
+				self.g_out[k][j] += self.delta_out[k]*self.z_hd[j]
 
 	def updateWeights (self):
 		n = 0.1 # learning rate
 		# Update input/hidden layer
 		for i in range(self.inn):
 			for j in range(self.hidden):
-				gradient = self.delta_hd[j]*self.z_in[i]
-				self.w_hd[j][i] = self.w_hd[j][i] - n*gradient 
+				#gradient = self.delta_hd[j]*self.z_in[i]
+				self.g_hd[j][i] /= 25
+				self.w_hd[j][i] = self.w_hd[j][i] - n*self.g_hd[j][i] 
 
 		# Update hidden/output layer
 		for j in range(self.hidden):
 			for k in range(self.out):
-				gradient = self.delta_out[k]*self.z_hd[j]
-				self.w_out[k][j] = self.w_out[k][j] - n*gradient 
+				#gradient = self.delta_out[k]*self.z_hd[j]
+				self.g_out[k][j] /= 25
+				self.w_out[k][j] = self.w_out[k][j] - n*self.g_out[k][j] 
 		
 	def training (self, xs, ts, it=100):
 		"""
@@ -118,22 +131,15 @@ class NeuralNetwork ():
 		"""
 		assert(len(xs) == len(ts)), 'Dimensions of training and target data do not correspond.'
 		avg = lambda x: x/len(xs) 
-		for j in range(5):
-			delta_hds  = np.zeros(self.hidden)
-			delta_outs = np.zeros(self.out)
+		for j in range(it):
 			for i in range(len(xs)):
 				self.forwardPropagate(xs[i])
 				self.backPropagate(ts[i])
-				# Save deltas
-				delta_hds  += self.delta_hd
-				delta_outs += self.delta_out
-			# Take the average of each delta
-			self.delta_hd  = map(avg, delta_hds)
-			self.delta_out = map(avg, delta_outs)
 			# Do update
-			print "hd: ",  self.delta_hd
-			print "out: ", self.delta_out
 			self.updateWeights()
+			self.g_hd  = np.zeros((3,2))
+			self.g_out = np.zeros((1,3))
+			#print "dout",self.delta_out
 
 raw = np.loadtxt('data/sincTrain25.dt').T
 ins, outs = raw[0], raw[1]
@@ -143,9 +149,15 @@ nn = NeuralNetwork(1,2,1,activation, activationp)
 nn.training(ins, outs)
 
 # Get out predictions
+prediction = []
 for i in range(len(ins)):
-	prediction = nn.forwardPropagate(ins[i])
-	print outs[i], prediction
+	p = nn.forwardPropagate(ins[i])
+	prediction.append(p)
+	print outs[i], p
+
+#figure()
+#plot(outs,prediction)
+#show()
 
 # III.1.1 Neural network training
 
