@@ -135,7 +135,7 @@ class NeuralNetwork ():
 			for i in range(len(xs)):
 				self.forwardPropagate(xs[i])
 				self.backPropagate(ts[i])
-			print "delta out",self.delta_out
+			#print "delta out",self.delta_out
 			# Do update
 			self.updateWeights()
 			#if abs(self.delta_out) < 0.005:
@@ -152,18 +152,18 @@ ins, outs = raw[0], raw[1]
 
 # Tests
 nn = NeuralNetwork(1,2,1,activation, activationp)
-nn.training(ins, outs)
+#nn.training(ins, outs)
 
 ps = []
-for i in range(len(ins)):
-	p = nn.forwardPropagate(ins[i])[0]
-	ps.append(p)
-	print p, outs[i]
+#for i in range(len(ins)):
+#	p = nn.forwardPropagate(ins[i])[0]
+#	ps.append(p)
+#	print p, outs[i]
 
-figure()
-scatter(ins, outs)
-scatter(ins, ps, c="red")
-show()
+#figure()
+#scatter(ins, outs)
+#scatter(ins, ps, c="red")
+#show()
 
 # Verify implementation
 unit1, unit2 = np.zeros(2), np.zeros(2)
@@ -240,7 +240,18 @@ test_data_norm = transpose(test_data_norm).tolist()
 
 # III.2.2 Model selection using grid-search
 
-def grid_search(tr_samples,tr_targets,te_samples,te_targets):
+def get_free_bounded (model, C):
+	# Get coefficients
+	coefs = [k[0] for (k) in model.get_sv_coef()]
+	no_free, no_bounded = 0, 0
+	for i in coefs:
+		if abs(i) == C:
+			no_bounded += 1
+		else:
+			no_free += 1
+	return (no_free, no_bounded)
+
+def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=None):
 	Cs     = [0.001,0.01,0.1,1,10,100,100,1000,10000]
 	gammas = [0.001,0.01,0.1,1,10,100,100,1000,10000]
 	problem = svm_problem(tr_targets,tr_samples)
@@ -251,60 +262,72 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets):
 
 	best = 0
 	values = (None, None)
-	for C in Cs:
+
+	if C is None:
+		for c in Cs:
+			for gamma in gammas:
+				parameter.C = c
+				parameter.gamma = gamma
+
+				sys.stdout = open(os.devnull,'w')
+				accuracy = svm_train(problem, parameter)
+				sys.stdout = sys.__stdout__
+				
+				if accuracy > best:
+					best = accuracy
+					values = (c, gamma)
+	else:
+		parameter.C = C
 		for gamma in gammas:
-			parameter.C = C
-			parameter.gamma = gamma 
+			parameter.gamma = gamma
 
 			sys.stdout = open(os.devnull,'w')
 			accuracy = svm_train(problem, parameter)
 			sys.stdout = sys.__stdout__
-			
 			if accuracy > best:
 				best = accuracy
 				values = (C, gamma)
-
-	print "Best accuracy during model selection:", best
-	print "C and gamma for best model: ", values
-
 	parameter.C = values[0]
 	parameter.gamma = values[1]
 	parameter.cross_validation = 0
 	model = svm_train(problem,parameter)
-
-	sys.stderr = open(os.devnull,'w')
+	
+	sys.stderr = open(os.devnull,'w') # Because libSVM pollutes stdout/err
 	sys.stdout = open(os.devnull,'w')
 	result = svm_predict(te_targets,te_samples,model)
 	sys.stderr = sys.__stderr__
 	sys.stdout = sys.__stdout__
+	
+	if verbose:
+		print "Best accuracy during model selection:", best
+		print "C and gamma for best model: ", values
+		print "Accuracy for test data using best model: ", result[1][0]
+		print get_free_bounded(model, C)
+	return (model,values)
 
-	print "Accuracy for test data using best model: ", result[1][0]
-	return values
-
-bestvals = grid_search(training_data,training_target_data,test_data,test_target_data)
-bestvals_norm = grid_search(training_data_norm,training_target_data,test_data_norm,test_target_data)
+_, bestvals = grid_search(training_data,training_target_data,test_data,test_target_data,verbose=True)
+model, bestvals_norm = grid_search(training_data_norm,training_target_data,test_data_norm,test_target_data,verbose=True)
 
 # III.2.3.1 Support vectors
 
+# Count number of free/bounded support vectors (using normalized data):
+print "No. free & bounded support vectors for C=", bestvals[0], ": ",get_free_bounded(model,bestvals[0])
 
+# Let's observe the impact of changing the value of regularization parameter C
+model0, (c0,g0) = grid_search(training_data,training_target_data,test_data,test_target_data, C=50)
+model1, (c1,g1) = grid_search(training_data,training_target_data,test_data,test_target_data, C=150)
+model2, (c2,g2) = grid_search(training_data,training_target_data,test_data,test_target_data, C=251)
+model3, (c3,g3) = grid_search(training_data,training_target_data,test_data,test_target_data, C=100)
 
+free0, bounded0 = get_free_bounded(model0, c0)
+free1, bounded1 = get_free_bounded(model1, c1)
+free2, bounded2 = get_free_bounded(model2, c2)
+free3, bounded3 = get_free_bounded(model3, c3)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print "--------------------"
+print "C   | Free | Bounded"
+print "--------------------"
+print "50\t", free0, "\t", bounded0
+print "100\t", free3, "\t", bounded3
+print "150\t", free1, "\t", bounded1
+print "250\t", free2, "\t", bounded2
