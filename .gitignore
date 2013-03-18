@@ -4,3 +4,5 @@
 *.swp
 *.JPG
 *.jpg
+*.tgz
+data/*
