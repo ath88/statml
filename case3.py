@@ -134,7 +134,9 @@ class NeuralNetwork ():
 		early_stop = float("inf")
 		this_error = float("inf")
 		all_errors = 0
-		while this_error <= desired_error:
+		j = 0
+		while this_error >= desired_error:
+			j +=1
 			self.g_hd  = np.zeros((3,2))
 			self.g_out = np.zeros((1,3))
 			for i in range(len(xs)):
@@ -144,7 +146,7 @@ class NeuralNetwork ():
 			self.updateWeights()
 			# Calculate error
 			this_error = self.calc_error(self.z_out, ts[i])
-			#print "Error: ",this_error
+			print "Error: ",this_error
 			all_errors += this_error
 			if early_stopping:
 				if this_error > early_stop:
@@ -158,8 +160,12 @@ class NeuralNetwork ():
 			target: target vector (length == k)
 		"""
 		err = 0
+		if target is not list:
+			target = [target]
+		#print "o",target
 		for i in range(len(output)):
-			err += (output[i]-target[i])**2	
+			err += 0.5*(output[i]-target[i])**2	
+		print err
 		return err
 
 raw = np.loadtxt('data/sincTrain25.dt').T
@@ -167,18 +173,20 @@ ins, outs = raw[0], raw[1]
 
 # Tests
 nn = NeuralNetwork(1,2,1,activation, activationp)
-#nn.training(ins, outs)
+nn.training(ins, outs)#,(early_stopping=True)
 
-#ps = []
-#for i in range(len(ins)):
-#	p = nn.forwardPropagate(ins[i])[0]
-#	ps.append(p)
-#	print p, outs[i]
+ps = []
+for i in range(len(ins)):
+	p = nn.forwardPropagate(ins[i])[0]
+	ps.append(p)
+	print p, outs[i]
 
-#figure()
-#scatter(ins, outs)
-#scatter(ins, ps, c="red")
-#show()
+figure()
+ylabel('Predictions/Targets')
+xlabel('x')
+scatter(ins, outs)
+scatter(ins, ps, c="red")
+show()
 
 ## III.2 Support Vector Machines
 
