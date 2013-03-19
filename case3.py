@@ -34,21 +34,21 @@ class NeuralNetwork ():
 	def __init__(self, d, m, k, act, actp):
 		d += 1
 		m += 1
-		self.inn 	= d
+		self.inn    = d
 		self.hidden = m
-		self.out 	= k
+		self.out    = k
 		self.act    = act
 		self.actp   = actp
-		# Data structures for activation data and weights
-		self.a_hd  = np.ones(m) 
+
+		self.a_hd  = np.ones(m) # activation values for hidden neurons.
 
 		self.z_in  = np.ones(d)
 		self.z_hd  = np.ones(m)    
 		self.z_out = np.ones(k)    
-		self.w_hd  = np.ones((m,d))
-		self.w_out = np.ones((k,m))
+		self.w_hd  = np.ones((m,d)) # weights of connections hidden neurons. m x d matrix
+		self.w_out = np.ones((k,m)) # weights of connections to output neurons. k*m matrix
 	
-		self.g_hd  = np.zeros((m,d))
+		self.g_hd  = np.zeros((m,d)) 
 		self.g_out = np.zeros((k,m))
 		
 		# Data structures for backpropagation
@@ -203,6 +203,7 @@ for i in training_data:
 	means_train.append(np.average(i))
 	vars_train.append(np.var(i))
 
+
 means_test, vars_test = [], []
 for i in test_data:
 	means_test.append(np.average(i))
@@ -217,8 +218,8 @@ for ft in training_data:
 
 test_data_norm, means_test_norm, vars_test_norm = [], [], []
 for ft in range(len(test_data)):
-	avg = means_train_norm[ft]
-	std = math.sqrt(vars_train_norm[ft])
+	avg = means_train[ft]
+	std = math.sqrt(vars_train[ft])
 	# Apply f-mapping from training
 	test_data_norm.append(normalise(test_data[ft],avg,std))
 	means_test_norm.append(np.average(test_data_norm[-1]))
@@ -299,7 +300,7 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 
 	if C is None:
 		for c in Cs:
-			sys.stdout.write(str(c) + ' &')
+#			sys.stdout.write(str(c) + ' &')
 			for gamma in gammas:
 				parameter = svm_parameter('-q -c ' + str(c) + ' -g ' + str(gamma))
 				accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
@@ -307,8 +308,8 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 				if accuracy > best_accuracy:
 					best_accuracy = accuracy
 					values = (c, gamma)
-				sys.stdout.write(" " + str(round(accuracy,2)) + "\\% &")
-			print("\\\\")
+#				sys.stdout.write(" " + str(round(accuracy,2)) + "\\% &")
+#			print("\\\\")
 	else:
 		for gamma in gammas:
 			parameter = svm_parameter('-q -c ' + str(C) + ' -g ' + str(gamma))
@@ -347,7 +348,7 @@ print "No. free & bounded support vectors ( C =", bestvals_norm[0], "): ",get_fr
 # Let's observe the impact of changing the value of regularization parameter C
 model0, (c0,g0) = grid_search(training_data,training_target_data,test_data,test_target_data, C=0.0001)
 model1, (c1,g1) = grid_search(training_data,training_target_data,test_data,test_target_data, C=0.14)
-model2, (c2,g2) = grid_search(training_data,training_target_data,test_data,test_target_data, C=1.5)
+model2, (c2,g2) = grid_search(training_data,training_target_data,test_data,test_target_data, C=1.4693)
 model3, (c3,g3) = grid_search(training_data,training_target_data,test_data,test_target_data, C=300)
 
 free0, bounded0 = get_free_bounded(model0, c0)
@@ -360,5 +361,5 @@ print "C      | Free | Bounded"
 print "-----------------------"
 print "1*10^-4\t  ", free0, "\t ", bounded0
 print "0.14\t ", free1, "\t ", bounded1
-print "1.5\t ", free2, "\t  ", bounded2
+print "1.4693\t ", free2, "\t ", bounded2
 print "300\t ", free3, "\t  ", bounded3
