@@ -109,10 +109,10 @@ class NeuralNetwork ():
 			for k in range(self.out):
 				self.g_out[k][j] += self.delta_out[k]*self.z_hd[j]
 
-	def updateWeights (self):
+	def updateWeights (self, n=0.05):
 		""" Updates the network weights based on gradient matrix.
+			n: learning rate
 		""" 
-		n = 0.05 # learning rate
 		# Update input/hidden layer
 		for i in range(self.inn):
 			for j in range(self.hidden):
