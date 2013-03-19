@@ -241,14 +241,56 @@ def get_free_bounded (model, C):
 			no_free += 1
 	return (no_free, no_bounded)
 
-def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=None):
-	Cs     = [0.001,0.01,0.1,1,10,100,100,1000,10000]
-	gammas = [0.001,0.01,0.1,1,10,100,100,1000,10000]
+def chunkIt(seq, num):
+	avg = len(seq) / float(num)
+	out = []
+	last = 0.0
+	while last < len(seq):
+		out.append(seq[int(last):int(last + avg)])
+		last += avg
+	return out
+
+def n_cross_valid(n, tr_targets,tr_samples,parameter):
 	problem = svm_problem(tr_targets,tr_samples)
-	parameter = svm_parameter('-q')
-	parameter.kernel_type = RBF
-	parameter.cross_validation = 1
-	parameter.nr_fold = 5
+
+	#splitting both data and targets into n chunks
+	split_samples = chunkIt(tr_samples,n)
+	split_targets = chunkIt(tr_targets,n)
+	
+	accuracy = 0.0
+	for i in range(0,n):
+		#making copies of data and target
+                samples = split_samples[:]
+                targets = split_targets[:]
+
+		#deleting validation set from the copies
+		del samples[i]
+		del targets[i]
+                samples = [a[0] for a in samples]
+                targets = [a[0] for a in targets]
+
+		#making a model from the training set without the validation set
+		problem = svm_problem(targets,samples)
+        	model = svm_train(problem,parameter)
+
+		#validating the model using the validation set
+		sys.stderr = open(os.devnull,'w') # Because libSVM pollutes stdout/err
+		sys.stdout = open(os.devnull,'w')
+		result = svm_predict(split_targets[i],split_samples[i],model)
+		sys.stderr = sys.__stderr__
+		sys.stdout = sys.__stdout__
+
+		# summing the accuracies of every validation
+		accuracy += result[1][0]
+
+	# return the average accuracy
+	accuracy = accuracy / n
+	return accuracy
+
+def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=None):
+	Cs     = [0.001,0.01,0.1,1,10,100,1000]
+	gammas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7]
+	problem = svm_problem(tr_targets,tr_samples)
 
 	best = 0
 	values = (None, None)
@@ -256,27 +298,34 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 	if C is None:
 		for c in Cs:
 			for gamma in gammas:
+				parameter = svm_parameter('-q')
+				parameter.kernel_type = RBF
 				parameter.C = c
 				parameter.gamma = gamma
 
 				sys.stdout = open(os.devnull,'w')
-				accuracy = svm_train(problem, parameter)
+				accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
 				sys.stdout = sys.__stdout__
 				
 				if accuracy > best:
 					best = accuracy
 					values = (c, gamma)
 	else:
+		parameter = svm_parameter('-q')
+		parameter.kernel_type = RBF
 		parameter.C = C
 		for gamma in gammas:
 			parameter.gamma = gamma
 
 			sys.stdout = open(os.devnull,'w')
-			accuracy = svm_train(problem, parameter)
+			accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
 			sys.stdout = sys.__stdout__
 			if accuracy > best:
 				best = accuracy
 				values = (C, gamma)
+
+	parameter = svm_parameter('-q')
+	parameter.kernel_type = RBF
 	parameter.C = values[0]
 	parameter.gamma = values[1]
 	parameter.cross_validation = 0
