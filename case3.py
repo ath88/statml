@@ -233,6 +233,7 @@ for ft in range(len(test_data)):
 	means_test_norm.append(np.average(test_data_norm[-1]))
 	vars_test_norm.append(np.var(test_data_norm[-1]))
 
+# Redefine for libSVM compatability
 training_data = transpose(training_data).tolist()
 test_data = transpose(test_data).tolist()
 training_data_norm = transpose(training_data_norm).tolist()
@@ -242,7 +243,7 @@ test_data_norm = transpose(test_data_norm).tolist()
 
 def get_free_bounded (model, C):
 	# Get coefficients
-	coefs = [k[0] for (k) in model.get_sv_coef()]
+	coefs = [k[0] for k in model.get_sv_coef()]
 	no_free, no_bounded = 0, 0
 	for i in coefs:
 		if abs(i) == C:
@@ -252,8 +253,8 @@ def get_free_bounded (model, C):
 	return (no_free, no_bounded)
 
 def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=None):
-	Cs     = [0.001,0.01,0.1,1,10,100,100,1000,10000]
-	gammas = [0.001,0.01,0.1,1,10,100,100,1000,10000]
+	Cs     = [0.001,0.01,0.1,1,10,100,1000,10000]
+	gammas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]
 	problem = svm_problem(tr_targets,tr_samples)
 	parameter = svm_parameter('-q')
 	parameter.kernel_type = RBF
@@ -314,20 +315,20 @@ model, bestvals_norm = grid_search(training_data_norm,training_target_data,test_
 print "No. free & bounded support vectors for C=", bestvals[0], ": ",get_free_bounded(model,bestvals[0])
 
 # Let's observe the impact of changing the value of regularization parameter C
-model0, (c0,g0) = grid_search(training_data,training_target_data,test_data,test_target_data, C=50)
-model1, (c1,g1) = grid_search(training_data,training_target_data,test_data,test_target_data, C=150)
-model2, (c2,g2) = grid_search(training_data,training_target_data,test_data,test_target_data, C=251)
-model3, (c3,g3) = grid_search(training_data,training_target_data,test_data,test_target_data, C=100)
+model0, (c0,g0) = grid_search(training_data,training_target_data,test_data,test_target_data, C=0.0001)
+model1, (c1,g1) = grid_search(training_data,training_target_data,test_data,test_target_data, C=0.14)
+model2, (c2,g2) = grid_search(training_data,training_target_data,test_data,test_target_data, C=1.5)
+model3, (c3,g3) = grid_search(training_data,training_target_data,test_data,test_target_data, C=300)
 
 free0, bounded0 = get_free_bounded(model0, c0)
 free1, bounded1 = get_free_bounded(model1, c1)
 free2, bounded2 = get_free_bounded(model2, c2)
 free3, bounded3 = get_free_bounded(model3, c3)
 
-print "--------------------"
-print "C   | Free | Bounded"
-print "--------------------"
-print "50\t", free0, "\t", bounded0
-print "100\t", free3, "\t", bounded3
-print "150\t", free1, "\t", bounded1
-print "250\t", free2, "\t", bounded2
+print "-----------------------"
+print "C      | Free | Bounded"
+print "-----------------------"
+print "1*10^-4\t  ", free0, "\t ", bounded0
+print "0.14\t ", free1, "\t ", bounded1
+print "1.5\t ", free2, "\t  ", bounded2
+print "300\t ", free3, "\t  ", bounded3
