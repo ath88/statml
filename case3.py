@@ -235,13 +235,13 @@ test_data_norm = transpose(test_data_norm).tolist()
 def get_free_bounded (model, C):
 	# Get coefficients
 	coefs = [k[0] for k in model.get_sv_coef()]
-	no_free, no_bounded = 0, 0
+	free, bounded = 0, 0
 	for i in coefs:
 		if abs(i) == C:
-			no_bounded += 1
+			bounded += 1
 		else:
-			no_free += 1
-	return (no_free, no_bounded)
+			free += 1
+	return (free, bounded)
 
 def chunkIt(seq, num):
 	avg = len(seq) / float(num)
@@ -292,7 +292,6 @@ def n_cross_valid(n, tr_targets,tr_samples,parameter):
 def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=None):
 	Cs     = [0.001,0.01,0.1,1,10,100,1000]
 	gammas = [0.001,0.01,0.1,1,10,100,1000]
-#	gammas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7]
 	problem = svm_problem(tr_targets,tr_samples)
 
 	best_accuracy = 0
@@ -300,26 +299,19 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 
 	if C is None:
 		for c in Cs:
+			sys.stdout.write(str(c) + ' &')
 			for gamma in gammas:
-				parameter = svm_parameter('-q')
-				parameter.C = c
-				parameter.gamma = gamma
-
-				sys.stdout = open(os.devnull,'w')
+				parameter = svm_parameter('-q -c ' + str(c) + ' -g ' + str(gamma))
 				accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
-				sys.stdout = sys.__stdout__
 				
 				if accuracy > best_accuracy:
 					best_accuracy = accuracy
 					values = (c, gamma)
-				sys.stdout.write(" " + str(round(accuracy,2)) + " &")
-			print("")
+				sys.stdout.write(" " + str(round(accuracy,2)) + "\\% &")
+			print("\\\\")
 	else:
-		parameter = svm_parameter('-q')
-		parameter.kernel_type = RBF
-		parameter.C = C
 		for gamma in gammas:
-			parameter.gamma = gamma
+			parameter = svm_parameter('-q -c ' + str(C) + ' -g ' + str(gamma))
 
 			sys.stdout = open(os.devnull,'w')
 			accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
@@ -328,11 +320,7 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 				best_accuracy = accuracy
 				values = (C, gamma)
 
-	parameter = svm_parameter('-q')
-	parameter.kernel_type = RBF
-	parameter.C = values[0]
-	parameter.gamma = values[1]
-	model = svm_train(problem,parameter)
+	model = svm_train(problem,"-q -c " + str(values[0]) + " -g " + str(values[1]))
 	
 	sys.stderr = open(os.devnull,'w') # Because libSVM pollutes stdout/err
 	sys.stdout = open(os.devnull,'w')
@@ -344,16 +332,17 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 		print "Best accuracy during model selection:", best_accuracy
 		print "C and gamma for best model: ", values
 		print "Accuracy for test data using best model: ", result[1][0]
-		print get_free_bounded(model, C)
 	return (model,values)
 
+print "\nGrid-searching on non-normalised data"
 _, bestvals = grid_search(training_data,training_target_data,test_data,test_target_data,verbose=True)
+print "\nGrid-searching on normalised data"
 model, bestvals_norm = grid_search(training_data_norm,training_target_data,test_data_norm,test_target_data,verbose=True)
 
 # III.2.3.1 Support vectors
 
 # Count number of free/bounded support vectors (using normalized data):
-print "No. free & bounded support vectors for C=", bestvals[0], ": ",get_free_bounded(model,bestvals[0])
+print "No. free & bounded support vectors ( C =", bestvals_norm[0], "): ",get_free_bounded(model,bestvals_norm[0])
 
 # Let's observe the impact of changing the value of regularization parameter C
 model0, (c0,g0) = grid_search(training_data,training_target_data,test_data,test_target_data, C=0.0001)
