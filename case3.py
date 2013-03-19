@@ -84,7 +84,8 @@ class NeuralNetwork ():
 		return self.z_out
 
 	def backPropagate (self, t):
-		"""
+		""" Backpropagate through the network and
+			set deltas and gradient matrix.
 			t: Target data
 			errfn: Error function
 		"""
@@ -109,8 +110,10 @@ class NeuralNetwork ():
 			for k in range(self.out):
 				self.g_out[k][j] += self.delta_out[k]*self.z_hd[j]
 
-	def updateWeights (self):
-		n = 0.05 # learning rate
+	def updateWeights (self, n=0.05):
+		""" Updates the network weights based on gradient matrix.
+			n: learning rate
+		""" 
 		# Update input/hidden layer
 		for i in range(self.inn):
 			for j in range(self.hidden):
@@ -120,8 +123,8 @@ class NeuralNetwork ():
 			for k in range(self.out):
 				self.w_out[k][j] = self.w_out[k][j] - n*self.g_out[k][j] 
 		
-	def training (self, xs, ts, it=17000):
-		"""
+	def training (self, xs, ts, desired_error=0.05, early_stopping=False):
+		""" Trains the neural network on xs and ts.
 			xs: list of input vectors
 			ts: list of target vectors
 			it: number of iterations on the training data
@@ -129,53 +132,62 @@ class NeuralNetwork ():
 		assert(len(xs) == len(ts)), 'Dimensions of training and target data do not correspond.'
 		self.forwardPropagate(xs[0])
 		self.backPropagate(xs[0])
-		stop = copy.deepcopy(self.delta_out)
-		for j in range(1,it):
+		early_stop = float("inf")
+		this_error = float("inf")
+		all_errors = 0
+		j = 0
+		while this_error >= desired_error:
+			j +=1
 			self.g_hd  = np.zeros((3,2))
 			self.g_out = np.zeros((1,3))
 			for i in range(len(xs)):
 				self.forwardPropagate(xs[i])
 				self.backPropagate(ts[i])
-			#print "delta out",self.delta_out
 			# Do update
 			self.updateWeights()
-			#if abs(self.delta_out) < 0.005:
-			#	print "stopped at: ", j+i
-			#	break
-#			if abs(self.delta_out) > abs(stop):
-#				print "stopped at: ", j+i
-#				print stop, self.delta_out
-#				break
-#			stop = copy.deepcopy(self.delta_out)
+			# Calculate error
+			this_error = self.calc_error(self.z_out, ts[i])
+			print "Error: ",this_error
+			all_errors += this_error
+			if early_stopping:
+				if this_error > early_stop:
+					print "Early stop at iteration: ", (j-1)*len(xs)+i
+					break
+				early_stop = this_error
+		print "Sum of squares error over all training data: ", all_errors
+	def calc_error (self, output, target):
+		""" Calculates error for output vector
+			output: output vector (length == k)
+			target: target vector (length == k)
+		"""
+		err = 0
+		if target is not list:
+			target = [target]
+		#print "o",target
+		for i in range(len(output)):
+			err += 0.5*(output[i]-target[i])**2	
+		print err
+		return err
 
 raw = np.loadtxt('data/sincTrain25.dt').T
 ins, outs = raw[0], raw[1]
 
 # Tests
 nn = NeuralNetwork(1,2,1,activation, activationp)
-#nn.training(ins, outs)
+nn.training(ins, outs)#,(early_stopping=True)
 
-# Verify implementation
-unit1, unit2 = np.zeros(2), np.zeros(2)
-unit1[0], unit2[1] = 1.0, 1.0
-eW, eW1, eW2 = 0, 0 ,0 
-epsilon=0.001
-predictions = []
-
-# Get out predictions
+ps = []
 for i in range(len(ins)):
-	p = nn.forwardPropagate(ins[i])
-	predictions.append(nn.forwardPropagate(ins[i]))
-	eW += 0.5*(p - outs[i])**2
-	#eW1 += 0.5*((p+epsilon*unit1) - outs[i])**2
-	#eW2 += 0.5*((p+epsilon*unit2) - outs[i])**2
-	#print outs[i], p
-#print "eW ", eW
+	p = nn.forwardPropagate(ins[i])[0]
+	ps.append(p)
+	print p, outs[i]
 
-#print "ew1: ",(eW1 - eW)/epsilon
-#print "ew2: ",(eW2 - eW)/epsilon
-
-# III.1.1 Neural network training
+figure()
+ylabel('Predictions/Targets')
+xlabel('x')
+scatter(ins, outs)
+scatter(ins, ps, c="red")
+show()
 
 ## III.2 Support Vector Machines
 
