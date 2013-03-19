@@ -237,6 +237,15 @@ for ft in range(len(test_data)):
 	means_test_norm.append(np.average(test_data_norm[-1]))
 	vars_test_norm.append(np.var(test_data_norm[-1]))
 
+print [round(a,2) for a in means_train]
+print [round(a,2) for a in vars_train]
+print [round(a,2) for a in means_train_norm]
+print [round(a,2) for a in vars_train_norm]
+print [round(a,2) for a in means_test]
+print [round(a,2) for a in vars_test]
+print [round(a,2) for a in means_test_norm]
+print [round(a,2) for a in vars_test_norm]
+
 # Redefine for libSVM compatability
 training_data = transpose(training_data).tolist()
 test_data = transpose(test_data).tolist()
