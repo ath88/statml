@@ -10,6 +10,7 @@ import numpy as np
 import scipy.io
 from svmutil import * 
 import copy
+import sys
 
 ### III.1 Neural Networks
 # III.1.1 Neural network implementation
@@ -290,17 +291,17 @@ def n_cross_valid(n, tr_targets,tr_samples,parameter):
 
 def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=None):
 	Cs     = [0.001,0.01,0.1,1,10,100,1000]
-	gammas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7]
+	gammas = [0.001,0.01,0.1,1,10,100,1000]
+#	gammas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7]
 	problem = svm_problem(tr_targets,tr_samples)
 
-	best = 0
+	best_accuracy = 0
 	values = (None, None)
 
 	if C is None:
 		for c in Cs:
 			for gamma in gammas:
 				parameter = svm_parameter('-q')
-				parameter.kernel_type = RBF
 				parameter.C = c
 				parameter.gamma = gamma
 
@@ -308,9 +309,11 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 				accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
 				sys.stdout = sys.__stdout__
 				
-				if accuracy > best:
-					best = accuracy
+				if accuracy > best_accuracy:
+					best_accuracy = accuracy
 					values = (c, gamma)
+				sys.stdout.write(" " + str(round(accuracy,2)) + " &")
+			print("")
 	else:
 		parameter = svm_parameter('-q')
 		parameter.kernel_type = RBF
@@ -321,15 +324,14 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 			sys.stdout = open(os.devnull,'w')
 			accuracy = n_cross_valid(5,tr_targets,tr_samples, parameter)
 			sys.stdout = sys.__stdout__
-			if accuracy > best:
-				best = accuracy
+			if accuracy > best_accuracy:
+				best_accuracy = accuracy
 				values = (C, gamma)
 
 	parameter = svm_parameter('-q')
 	parameter.kernel_type = RBF
 	parameter.C = values[0]
 	parameter.gamma = values[1]
-	parameter.cross_validation = 0
 	model = svm_train(problem,parameter)
 	
 	sys.stderr = open(os.devnull,'w') # Because libSVM pollutes stdout/err
@@ -339,7 +341,7 @@ def grid_search(tr_samples,tr_targets,te_samples,te_targets, verbose=False, C=No
 	sys.stdout = sys.__stdout__
 	
 	if verbose:
-		print "Best accuracy during model selection:", best
+		print "Best accuracy during model selection:", best_accuracy
 		print "C and gamma for best model: ", values
 		print "Accuracy for test data using best model: ", result[1][0]
 		print get_free_bounded(model, C)
