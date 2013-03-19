@@ -154,23 +154,14 @@ ins, outs = raw[0], raw[1]
 nn = NeuralNetwork(1,2,1,activation, activationp)
 #nn.training(ins, outs)
 
-ps = []
-#for i in range(len(ins)):
-#	p = nn.forwardPropagate(ins[i])[0]
-#	ps.append(p)
-#	print p, outs[i]
-
-#figure()
-#scatter(ins, outs)
-#scatter(ins, ps, c="red")
-#show()
-
 # Verify implementation
 unit1, unit2 = np.zeros(2), np.zeros(2)
 unit1[0], unit2[1] = 1.0, 1.0
 eW, eW1, eW2 = 0, 0 ,0 
 epsilon=0.001
 predictions = []
+
+# Get out predictions
 for i in range(len(ins)):
 	p = nn.forwardPropagate(ins[i])
 	predictions.append(nn.forwardPropagate(ins[i]))
@@ -182,7 +173,6 @@ for i in range(len(ins)):
 
 #print "ew1: ",(eW1 - eW)/epsilon
 #print "ew2: ",(eW2 - eW)/epsilon
-
 
 # III.1.1 Neural network training
 
